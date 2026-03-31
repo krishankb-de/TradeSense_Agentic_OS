@@ -10,12 +10,16 @@ from backend.core.config import get_settings
 
 settings = get_settings()
 
-# Create SQLAlchemy engine
+# Create SQLAlchemy engine with connection pooling
+# pool_size: minimum number of connections (5)
+# max_overflow: maximum additional connections (20)
+# Total max connections: 25
 engine = create_engine(
     settings.database_url,
-    pool_pre_ping=True,
-    pool_size=5,
-    max_overflow=20,
+    pool_pre_ping=True,  # Verify connections before using
+    pool_size=5,  # Minimum connections in pool
+    max_overflow=20,  # Maximum additional connections
+    pool_recycle=3600,  # Recycle connections after 1 hour
     echo=settings.is_development,
 )
 

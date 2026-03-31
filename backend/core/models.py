@@ -377,3 +377,372 @@ class Schedule(BaseModel):
 
     class Config:
         populate_by_name = True
+
+
+# ============================================================================
+# Database Entity Models
+# ============================================================================
+
+
+class CustomerBase(BaseModel):
+    """Base customer model."""
+
+    name: str = Field(..., min_length=1, max_length=255)
+    email: Optional[str] = Field(None, max_length=255)
+    phone: Optional[str] = Field(None, max_length=50)
+    address: Optional[str] = None
+    city: Optional[str] = Field(None, max_length=100)
+    state: Optional[str] = Field(None, max_length=50)
+    zip_code: Optional[str] = Field(None, max_length=20, alias="zipCode")
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, v: Optional[str]) -> Optional[str]:
+        """Validate email format."""
+        if v and "@" not in v:
+            raise ValueError("Invalid email format")
+        return v
+
+    class Config:
+        populate_by_name = True
+
+
+class CustomerCreate(CustomerBase):
+    """Customer creation model."""
+
+    pass
+
+
+class CustomerUpdate(BaseModel):
+    """Customer update model (all fields optional)."""
+
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    email: Optional[str] = Field(None, max_length=255)
+    phone: Optional[str] = Field(None, max_length=50)
+    address: Optional[str] = None
+    city: Optional[str] = Field(None, max_length=100)
+    state: Optional[str] = Field(None, max_length=50)
+    zip_code: Optional[str] = Field(None, max_length=20, alias="zipCode")
+
+    class Config:
+        populate_by_name = True
+
+
+class Customer(CustomerBase):
+    """Customer model with database fields."""
+
+    id: str
+    created_at: datetime = Field(..., alias="createdAt")
+    updated_at: datetime = Field(..., alias="updatedAt")
+
+    class Config:
+        populate_by_name = True
+        from_attributes = True
+
+
+class TechnicianStatus(str, Enum):
+    """Technician status types."""
+
+    AVAILABLE = "available"
+    BUSY = "busy"
+    OFFLINE = "offline"
+
+
+class TechnicianBase(BaseModel):
+    """Base technician model."""
+
+    name: str = Field(..., min_length=1, max_length=255)
+    email: str = Field(..., max_length=255)
+    phone: Optional[str] = Field(None, max_length=50)
+    skills: List[str] = Field(default_factory=list)
+    status: TechnicianStatus = TechnicianStatus.AVAILABLE
+    current_location_lat: Optional[float] = Field(None, ge=-90, le=90, alias="currentLocationLat")
+    current_location_lng: Optional[float] = Field(None, ge=-180, le=180, alias="currentLocationLng")
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        """Validate email format."""
+        if "@" not in v:
+            raise ValueError("Invalid email format")
+        return v
+
+    class Config:
+        populate_by_name = True
+
+
+class TechnicianCreate(TechnicianBase):
+    """Technician creation model."""
+
+    pass
+
+
+class TechnicianUpdate(BaseModel):
+    """Technician update model (all fields optional)."""
+
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    email: Optional[str] = Field(None, max_length=255)
+    phone: Optional[str] = Field(None, max_length=50)
+    skills: Optional[List[str]] = None
+    status: Optional[TechnicianStatus] = None
+    current_location_lat: Optional[float] = Field(None, ge=-90, le=90, alias="currentLocationLat")
+    current_location_lng: Optional[float] = Field(None, ge=-180, le=180, alias="currentLocationLng")
+
+    class Config:
+        populate_by_name = True
+
+
+class Technician(TechnicianBase):
+    """Technician model with database fields."""
+
+    id: str
+    created_at: datetime = Field(..., alias="createdAt")
+    updated_at: datetime = Field(..., alias="updatedAt")
+
+    class Config:
+        populate_by_name = True
+        from_attributes = True
+
+
+class LeadBase(BaseModel):
+    """Base lead model."""
+
+    customer_id: Optional[str] = Field(None, alias="customerId")
+    source: LeadSource
+    urgency: Urgency
+    service_type: Optional[str] = Field(None, max_length=100, alias="serviceType")
+    description: Optional[str] = None
+    confidence_score: Optional[float] = Field(None, ge=0, le=1, alias="confidenceScore")
+    status: LeadStatus = LeadStatus.NEW
+
+    class Config:
+        populate_by_name = True
+
+
+class LeadCreate(LeadBase):
+    """Lead creation model."""
+
+    pass
+
+
+class LeadUpdate(BaseModel):
+    """Lead update model (all fields optional)."""
+
+    customer_id: Optional[str] = Field(None, alias="customerId")
+    source: Optional[LeadSource] = None
+    urgency: Optional[Urgency] = None
+    service_type: Optional[str] = Field(None, max_length=100, alias="serviceType")
+    description: Optional[str] = None
+    confidence_score: Optional[float] = Field(None, ge=0, le=1, alias="confidenceScore")
+    status: Optional[LeadStatus] = None
+
+    class Config:
+        populate_by_name = True
+
+
+class LeadDB(LeadBase):
+    """Lead model with database fields."""
+
+    id: str
+    created_at: datetime = Field(..., alias="createdAt")
+    updated_at: datetime = Field(..., alias="updatedAt")
+
+    class Config:
+        populate_by_name = True
+        from_attributes = True
+
+
+class JobPriority(str, Enum):
+    """Job priority levels."""
+
+    EMERGENCY = "emergency"
+    HIGH = "high"
+    NORMAL = "normal"
+    LOW = "low"
+
+
+class JobBase(BaseModel):
+    """Base job model."""
+
+    lead_id: Optional[str] = Field(None, alias="leadId")
+    customer_id: str = Field(..., alias="customerId")
+    technician_id: Optional[str] = Field(None, alias="technicianId")
+    title: str = Field(..., min_length=1, max_length=255)
+    description: Optional[str] = None
+    service_type: Optional[str] = Field(None, max_length=100, alias="serviceType")
+    priority: JobPriority = JobPriority.NORMAL
+    status: JobStatus = JobStatus.SCHEDULED
+    scheduled_start: Optional[datetime] = Field(None, alias="scheduledStart")
+    scheduled_end: Optional[datetime] = Field(None, alias="scheduledEnd")
+    actual_start: Optional[datetime] = Field(None, alias="actualStart")
+    actual_end: Optional[datetime] = Field(None, alias="actualEnd")
+    location_address: Optional[str] = Field(None, alias="locationAddress")
+    location_lat: Optional[float] = Field(None, ge=-90, le=90, alias="locationLat")
+    location_lng: Optional[float] = Field(None, ge=-180, le=180, alias="locationLng")
+    first_time_fix: bool = Field(False, alias="firstTimeFix")
+
+    @field_validator("scheduled_end")
+    @classmethod
+    def validate_scheduled_end(cls, v: Optional[datetime], info) -> Optional[datetime]:
+        """Validate scheduled_end is after scheduled_start."""
+        if v and "scheduled_start" in info.data and info.data["scheduled_start"]:
+            if v <= info.data["scheduled_start"]:
+                raise ValueError("scheduled_end must be after scheduled_start")
+        return v
+
+    class Config:
+        populate_by_name = True
+
+
+class JobCreate(JobBase):
+    """Job creation model."""
+
+    pass
+
+
+class JobUpdate(BaseModel):
+    """Job update model (all fields optional)."""
+
+    lead_id: Optional[str] = Field(None, alias="leadId")
+    customer_id: Optional[str] = Field(None, alias="customerId")
+    technician_id: Optional[str] = Field(None, alias="technicianId")
+    title: Optional[str] = Field(None, min_length=1, max_length=255)
+    description: Optional[str] = None
+    service_type: Optional[str] = Field(None, max_length=100, alias="serviceType")
+    priority: Optional[JobPriority] = None
+    status: Optional[JobStatus] = None
+    scheduled_start: Optional[datetime] = Field(None, alias="scheduledStart")
+    scheduled_end: Optional[datetime] = Field(None, alias="scheduledEnd")
+    actual_start: Optional[datetime] = Field(None, alias="actualStart")
+    actual_end: Optional[datetime] = Field(None, alias="actualEnd")
+    location_address: Optional[str] = Field(None, alias="locationAddress")
+    location_lat: Optional[float] = Field(None, ge=-90, le=90, alias="locationLat")
+    location_lng: Optional[float] = Field(None, ge=-180, le=180, alias="locationLng")
+    first_time_fix: Optional[bool] = Field(None, alias="firstTimeFix")
+
+    class Config:
+        populate_by_name = True
+
+
+class JobDB(JobBase):
+    """Job model with database fields."""
+
+    id: str
+    created_at: datetime = Field(..., alias="createdAt")
+    updated_at: datetime = Field(..., alias="updatedAt")
+
+    class Config:
+        populate_by_name = True
+        from_attributes = True
+
+
+class PartBase(BaseModel):
+    """Base part model."""
+
+    part_number: str = Field(..., min_length=1, max_length=100, alias="partNumber")
+    name: str = Field(..., min_length=1, max_length=255)
+    description: Optional[str] = None
+    manufacturer: Optional[str] = Field(None, max_length=255)
+    category: Optional[str] = Field(None, max_length=100)
+    quantity_available: int = Field(0, ge=0, alias="quantityAvailable")
+    unit_price: Optional[float] = Field(None, ge=0, alias="unitPrice")
+    reorder_level: int = Field(10, ge=0, alias="reorderLevel")
+
+    class Config:
+        populate_by_name = True
+
+
+class PartCreate(PartBase):
+    """Part creation model."""
+
+    pass
+
+
+class PartUpdate(BaseModel):
+    """Part update model (all fields optional)."""
+
+    part_number: Optional[str] = Field(None, min_length=1, max_length=100, alias="partNumber")
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    description: Optional[str] = None
+    manufacturer: Optional[str] = Field(None, max_length=255)
+    category: Optional[str] = Field(None, max_length=100)
+    quantity_available: Optional[int] = Field(None, ge=0, alias="quantityAvailable")
+    unit_price: Optional[float] = Field(None, ge=0, alias="unitPrice")
+    reorder_level: Optional[int] = Field(None, ge=0, alias="reorderLevel")
+
+    class Config:
+        populate_by_name = True
+
+
+class PartDB(PartBase):
+    """Part model with database fields."""
+
+    id: str
+    created_at: datetime = Field(..., alias="createdAt")
+    updated_at: datetime = Field(..., alias="updatedAt")
+
+    class Config:
+        populate_by_name = True
+        from_attributes = True
+
+
+class ConversationChannel(str, Enum):
+    """Conversation channel types."""
+
+    VOICE = "voice"
+    SMS = "sms"
+    WEB = "web"
+
+
+class ConversationStatus(str, Enum):
+    """Conversation status types."""
+
+    ACTIVE = "active"
+    COMPLETED = "completed"
+    ABANDONED = "abandoned"
+
+
+class ConversationBase(BaseModel):
+    """Base conversation model."""
+
+    session_id: str = Field(..., min_length=1, max_length=255, alias="sessionId")
+    customer_id: Optional[str] = Field(None, alias="customerId")
+    technician_id: Optional[str] = Field(None, alias="technicianId")
+    job_id: Optional[str] = Field(None, alias="jobId")
+    channel: ConversationChannel
+    status: ConversationStatus = ConversationStatus.ACTIVE
+    context: Optional[Dict[str, Any]] = None
+
+    class Config:
+        populate_by_name = True
+
+
+class ConversationCreate(ConversationBase):
+    """Conversation creation model."""
+
+    pass
+
+
+class ConversationUpdate(BaseModel):
+    """Conversation update model (all fields optional)."""
+
+    customer_id: Optional[str] = Field(None, alias="customerId")
+    technician_id: Optional[str] = Field(None, alias="technicianId")
+    job_id: Optional[str] = Field(None, alias="jobId")
+    status: Optional[ConversationStatus] = None
+    context: Optional[Dict[str, Any]] = None
+
+    class Config:
+        populate_by_name = True
+
+
+class ConversationDB(ConversationBase):
+    """Conversation model with database fields."""
+
+    id: str
+    created_at: datetime = Field(..., alias="createdAt")
+    updated_at: datetime = Field(..., alias="updatedAt")
+
+    class Config:
+        populate_by_name = True
+        from_attributes = True

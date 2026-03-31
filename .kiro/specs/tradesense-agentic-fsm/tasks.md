@@ -62,6 +62,30 @@ This implementation plan transforms the TradeSense design into actionable coding
     - Test rate limiting and caching
     - _Requirements: 1.3, 1.4, 12.5_
 
+  - [x] 2.5 Comprehensive testing for Task 2 (Cloud LLM Integration)
+    - [ ] 2.5.1 Unit tests
+      - Test Gemini API client initialization and configuration
+      - Test Azure OpenAI client initialization and configuration
+      - Test unified client routing logic
+      - Test rate limiting and quota management
+      - Test caching mechanisms
+      - Test error handling and fallback behavior
+    - [ ] 2.5.2 Integration tests
+      - Test end-to-end LLM request flow (Gemini → Azure → Copilot)
+      - Test quota exhaustion and automatic fallback
+      - Test cost tracking across multiple providers
+      - Test concurrent request handling
+    - [ ] 2.5.3 System tests
+      - Test LLM integration with real API endpoints
+      - Test performance under load (100+ concurrent requests)
+      - Test cost optimization strategies
+      - Verify all LLM-related requirements are met
+    - [ ] 2.5.4 End-to-end tests
+      - Test complete workflow: user request → LLM processing → response
+      - Test multi-turn conversations with context preservation
+      - Test error recovery and graceful degradation
+    - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.6, 1.7, 1.8, 12.5_
+
 
 - [ ] 3. Implement cloud voice processing pipeline
   - [x] 3.1 Set up Azure Speech Services STT (Python)
@@ -103,38 +127,91 @@ This implementation plan transforms the TradeSense design into actionable coding
     - **Property 3: Turn-Taking Accuracy**
     - **Validates: Requirements 2.10**
 
-- [ ] 4. Implement core data models and database layer
-  - [ ] 4.1 Create PostgreSQL schema and migrations (Python)
+  - [x] 3.8 Comprehensive testing for Task 3 (Cloud Voice Processing)
+    - [ ] 3.8.1 Unit tests
+      - Test Azure Speech STT initialization and configuration
+      - Test Azure Speech TTS initialization and configuration
+      - Test VAD threshold detection and adaptation
+      - Test voice pipeline state management
+      - Test session lifecycle management
+      - Test error handling for each component
+    - [ ] 3.8.2 Integration tests
+      - Test STT → LLM → TTS complete flow
+      - Test VAD integration with STT
+      - Test pipeline orchestration with all components
+      - Test interruption handling and turn-taking
+      - Test streaming transcription and synthesis
+    - [ ] 3.8.3 System tests
+      - Test voice pipeline with real Azure Speech Services
+      - Test performance under various network conditions
+      - Test with different audio qualities and noise levels
+      - Test with multiple concurrent voice sessions
+      - Verify latency requirements (<500ms p95)
+    - [ ] 3.8.4 End-to-end tests
+      - Test complete voice interaction: audio in → transcription → LLM → synthesis → audio out
+      - Test multi-turn conversations with context
+      - Test error recovery and fallback to text mode
+      - Test with various accents and speaking styles
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 2.10, 14.1_
+
+- [x] 4. Implement core data models and database layer
+  - [x] 4.1 Create PostgreSQL schema and migrations (Python)
     - Define tables: leads, jobs, customers, technicians, parts, conversations, audit_logs
     - Create indexes for frequently queried fields
     - Implement partitioning for audit logs (monthly)
     - _Requirements: 11.2, 18.6, 18.8_
 
-  - [ ] 4.2 Implement Pydantic data models (Python)
+  - [x] 4.2 Implement Pydantic data models (Python)
     - Create models: Lead, Job, Customer, Technician, Part, ConversationContext, MCPToolCall
     - Add validation rules from design document
     - Implement serialization/deserialization
     - _Requirements: 4.2, 5.1, 6.1_
 
-  - [ ] 4.3 Create database access layer with SQLAlchemy (Python)
+  - [x] 4.3 Create database access layer with SQLAlchemy (Python)
     - Implement repository pattern for each entity
     - Add connection pooling (min: 5, max: 20)
     - Implement transaction management with retry logic
     - _Requirements: 15.8, 17.9_
 
-  - [ ] 4.4 Set up Redis caching layer (Python)
+  - [x] 4.4 Set up Redis caching layer (Python)
     - Create Redis client with connection pooling
     - Implement caching for session state, technician schedules, customer data
     - Configure TTLs: 15min (schedules), 1hr (customer data)
     - _Requirements: 3.7, 15.9_
 
-  - [ ]* 4.5 Write unit tests for data models
+  - [x] 4.5 Write unit tests for data models
     - Test validation rules for all models
     - Test serialization/deserialization
     - Test database CRUD operations
     - _Requirements: 4.2, 5.1, 6.1_
 
-- [ ] 5. Checkpoint - Verify infrastructure and data layer
+  - [x] 4.6 Comprehensive testing for Task 4 (Data Models and Database)
+    - [x] 4.6.1 Unit tests
+      - Test Pydantic model validation for all entities
+      - Test model serialization/deserialization
+      - Test database repository CRUD operations
+      - Test connection pooling and transaction management
+      - Test Redis caching operations
+      - Test cache TTL and invalidation
+    - [x] 4.6.2 Integration tests
+      - Test database migrations and schema changes
+      - Test data integrity constraints
+      - Test concurrent database access
+      - Test cache synchronization with database
+      - Test transaction rollback and retry logic
+    - [x] 4.6.3 System tests
+      - Test database performance under load
+      - Test connection pool behavior under stress
+      - Test cache hit/miss ratios
+      - Test data consistency across cache and database
+      - Verify partitioning for audit logs
+    - [x] 4.6.4 End-to-end tests
+      - Test complete data flow: API → validation → database → cache
+      - Test data retrieval with caching
+      - Test audit log creation and querying
+    - _Requirements: 4.2, 5.1, 6.1, 11.2, 15.8, 15.9, 17.9, 18.6, 18.8_
+
+- [x] 5. Checkpoint - Verify infrastructure and data layer
   - Ensure all tests pass, ask the user if questions arise.
 
 
@@ -167,6 +244,30 @@ This implementation plan transforms the TradeSense design into actionable coding
     - Test secrets management
     - Test retry policies
     - _Requirements: 3.1, 3.3, 3.4_
+
+  - [ ] 6.6 Comprehensive testing for Task 6 (Pipeline Orchestration)
+    - [ ] 6.6.1 Unit tests
+      - Test FastAPI application initialization
+      - Test pipeline step execution
+      - Test workflow template creation
+      - Test artifact tracking
+      - Test secrets management
+      - Test retry policy configuration
+    - [ ] 6.6.2 Integration tests
+      - Test complete pipeline execution with multiple steps
+      - Test telemetry integration (Langfuse, Datadog, Sentry)
+      - Test error propagation and handling
+      - Test concurrent pipeline execution
+    - [ ] 6.6.3 System tests
+      - Test pipeline performance under load
+      - Test observability data collection
+      - Test retry behavior with real failures
+      - Verify all telemetry is captured correctly
+    - [ ] 6.6.4 End-to-end tests
+      - Test complete workflow: trigger → execution → completion → telemetry
+      - Test pipeline failure and recovery
+      - Test artifact persistence and retrieval
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.8, 9.1, 9.2, 9.3_
 
 - [ ] 7. Implement MCP integration layer
   - [ ] 7.1 Create MCP client manager (TypeScript)
@@ -211,7 +312,7 @@ This implementation plan transforms the TradeSense design into actionable coding
     - Implement CodeCarbon for AI infrastructure emissions
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
-  - [ ]* 7.8 Write property test for MCP tool schema validation
+  - [ ] 7.8 Write property test for MCP tool schema validation
     - **Property 6: MCP Tool Schema Validation**
     - **Validates: Requirements 10.7, 10.8**
 
@@ -228,6 +329,32 @@ This implementation plan transforms the TradeSense design into actionable coding
     - Test tool execution and result validation
     - Test InvenTree, Part-DB, KiCost, Kabaun integrations
     - _Requirements: 10.1, 10.2, 10.9, 15.2, 15.3_
+
+  - [ ] 7.12 Comprehensive testing for Task 7 (MCP Integration)
+    - [ ] 7.12.1 Unit tests
+      - Test MCP client initialization and connection
+      - Test tool schema parsing and validation
+      - Test JSON-RPC message serialization
+      - Test connection pooling and lifecycle
+      - Test each MCP integration (FileSystem, Database, InvenTree, Part-DB, KiCost, Kabaun)
+      - Test error handling for each integration
+    - [ ] 7.12.2 Integration tests
+      - Test MCP tool execution with real servers
+      - Test tool chaining and composition
+      - Test caching behavior across multiple calls
+      - Test retry logic with exponential backoff
+      - Test failover between MCP servers
+    - [ ] 7.12.3 System tests
+      - Test MCP throughput (1000+ calls/minute)
+      - Test concurrent tool execution
+      - Test performance with large result sets
+      - Test memory usage with connection pooling
+      - Verify all MCP-related requirements are met
+    - [ ] 7.12.4 End-to-end tests
+      - Test complete workflow: agent request → MCP tool call → result processing
+      - Test multi-tool workflows (e.g., search parts → check inventory → get pricing)
+      - Test error recovery and fallback mechanisms
+    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.9, 8.1, 8.2, 8.3, 8.4, 8.5, 10.1, 10.2, 10.6, 10.7, 10.8, 10.9, 15.2, 15.3, 20.1, 20.4_
 
 
 - [ ] 8. Implement CrewAI Intake Agent
@@ -274,6 +401,33 @@ This implementation plan transforms the TradeSense design into actionable coding
     - Test WebRTC voice integration
     - Test notification delivery (email, push, Discord)
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
+
+  - [ ] 8.8 Comprehensive testing for Task 8 (Intake Agent)
+    - [ ] 8.8.1 Unit tests
+      - Test CrewAI agent initialization and configuration
+      - Test lead capture from voice, SMS, web sources
+      - Test urgency classification logic
+      - Test service type detection
+      - Test confidence scoring
+      - Test parts availability checking
+      - Test notification creation (email, push, Discord)
+    - [ ] 8.8.2 Integration tests
+      - Test complete intake flow: capture → classify → create lead → notify
+      - Test WebRTC voice integration with STT
+      - Test inventory service integration
+      - Test notification delivery across all channels
+      - Test LLM integration (Gemini/Azure) for classification
+    - [ ] 8.8.3 System tests
+      - Test intake performance under load (100+ concurrent requests)
+      - Test classification accuracy with real data
+      - Test notification delivery reliability
+      - Test WebRTC session management
+      - Verify all intake-related requirements are met
+    - [ ] 8.8.4 End-to-end tests
+      - Test complete customer intake: voice call → transcription → classification → lead creation → technician notification
+      - Test multi-channel intake (voice, SMS, web)
+      - Test error handling and fallback mechanisms
+    - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.6, 4.7, 4.8, 4.9, 4.10_
 
 - [ ] 9. Implement LangGraph + AutoGen Diagnostic Agent
   - [ ] 9.1 Create LangGraph diagnostic workflow (TypeScript)
@@ -329,6 +483,35 @@ This implementation plan transforms the TradeSense design into actionable coding
     - Test parts sourcing and alternatives
     - Test repair guide generation
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6_
+
+  - [ ] 9.10 Comprehensive testing for Task 9 (Diagnostic Agent)
+    - [ ] 9.10.1 Unit tests
+      - Test LangGraph workflow initialization
+      - Test diagnostic reasoning chain logic
+      - Test Gemini Vision API integration
+      - Test OCR for equipment labels
+      - Test parts sourcing logic
+      - Test alternative parts finding
+      - Test repair guide generation
+      - Test AutoGen agent collaboration
+      - Test documentation RAG search
+    - [ ] 9.10.2 Integration tests
+      - Test complete diagnostic flow: issue → analysis → parts → repair guide
+      - Test multimodal image processing pipeline
+      - Test parts sourcing with inventory and pricing APIs
+      - Test documentation retrieval and citation
+      - Test LLM integration (Gemini/Azure) for diagnosis
+    - [ ] 9.10.3 System tests
+      - Test diagnostic performance under load
+      - Test image processing accuracy with real equipment photos
+      - Test parts availability accuracy
+      - Test documentation retrieval performance (<1s)
+      - Verify all diagnostic-related requirements are met
+    - [ ] 9.10.4 End-to-end tests
+      - Test complete diagnostic workflow: technician photo → equipment identification → parts sourcing → repair guide
+      - Test multi-turn troubleshooting with AutoGen
+      - Test error handling and fallback mechanisms
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 5.11, 7.5, 7.6, 7.7, 19.1, 19.2, 19.3, 19.4, 19.5, 19.6, 20.2, 20.3, 20.6, 20.9_
 
 
 - [ ] 10. Implement CrewAI Fulfillment Agent
@@ -394,6 +577,34 @@ This implementation plan transforms the TradeSense design into actionable coding
     - Test KPI tracking
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.8_
 
+  - [ ] 10.12 Comprehensive testing for Task 10 (Fulfillment Agent)
+    - [ ] 10.12.1 Unit tests
+      - Test CrewAI agent initialization
+      - Test job assignment logic with skill matching
+      - Test route optimization algorithm
+      - Test constraint satisfaction (time windows, skills)
+      - Test emergency job prioritization
+      - Test carbon footprint calculation formulas
+      - Test compliance reporting logic
+      - Test KPI tracking and metrics
+    - [ ] 10.12.2 Integration tests
+      - Test complete fulfillment flow: job → schedule → optimize → assign → track
+      - Test schedule re-optimization for emergencies
+      - Test carbon calculation with real job data
+      - Test compliance report generation
+      - Test voice-driven job completion logging
+    - [ ] 10.12.3 System tests
+      - Test schedule optimization with 50+ jobs and 10+ technicians
+      - Test optimization performance (<5s for 100 jobs)
+      - Test utilization rate calculation (target 75%+)
+      - Test carbon tracking accuracy
+      - Verify all fulfillment-related requirements are met
+    - [ ] 10.12.4 End-to-end tests
+      - Test complete workflow: job completion → schedule update → carbon tracking → KPI update
+      - Test emergency job insertion and re-optimization
+      - Test compliance reporting with real data
+    - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.10, 6.11, 8.6, 8.7, 8.8, 8.9, 9.7, 9.8_
+
 - [ ] 11. Checkpoint - Verify agent implementations
   - Ensure all tests pass, ask the user if questions arise.
 
@@ -441,6 +652,32 @@ This implementation plan transforms the TradeSense design into actionable coding
     - Test audit trail logging
     - _Requirements: 3.1, 3.2, 15.4, 18.6_
 
+  - [ ] 12.8 Comprehensive testing for Task 12 (Agent Routing and Conversation)
+    - [ ] 12.8.1 Unit tests
+      - Test intent classification with various inputs
+      - Test confidence scoring accuracy
+      - Test agent routing decision logic
+      - Test conversation context creation and updates
+      - Test context passing between agents
+      - Test audit trail logging format and completeness
+    - [ ] 12.8.2 Integration tests
+      - Test complete routing flow: input → classify → route → execute → log
+      - Test multi-turn conversations with context preservation
+      - Test agent handoff scenarios
+      - Test fallback to clarifying questions
+      - Test audit trail persistence to database
+    - [ ] 12.8.3 System tests
+      - Test routing performance under load
+      - Test classification accuracy with real conversations
+      - Test context management with concurrent sessions
+      - Test audit trail query performance
+      - Verify all routing-related requirements are met
+    - [ ] 12.8.4 End-to-end tests
+      - Test complete conversation: user input → intent → routing → agent execution → response → audit
+      - Test complex multi-agent workflows
+      - Test error handling and recovery
+    - _Requirements: 3.1, 3.2, 3.3, 4.10, 11.6, 15.4, 18.6, 18.7, 18.8_
+
 - [ ] 13. Implement voice-to-agent integration
   - [ ] 13.1 Create voice session manager (Python)
     - Implement VoiceSession model
@@ -466,6 +703,33 @@ This implementation plan transforms the TradeSense design into actionable coding
     - Verify data integrity across pipeline
     - Test with various accents and noise levels
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6_
+
+  - [ ] 13.5 Comprehensive testing for Task 13 (Voice-to-Agent Integration)
+    - [ ] 13.5.1 Unit tests
+      - Test VoiceSession model and lifecycle
+      - Test session metrics tracking
+      - Test FastAPI endpoint creation
+      - Test voice-to-text-to-agent-to-speech flow components
+      - Test streaming response handling
+      - Test interruption detection
+    - [ ] 13.5.2 Integration tests
+      - Test complete voice pipeline integration with agent routing
+      - Test voice session management with multiple concurrent sessions
+      - Test error handling and fallback to text mode
+      - Test turn-taking and interruption handling
+      - Test streaming transcription and synthesis
+    - [ ] 13.5.3 System tests
+      - Test voice-to-agent performance under load
+      - Test latency requirements (<500ms p95)
+      - Test with various audio qualities and environments
+      - Test session metrics accuracy
+      - Verify all voice integration requirements are met
+    - [ ] 13.5.4 End-to-end tests
+      - Test complete workflow: voice input → STT → agent → LLM → TTS → voice output
+      - Test multi-turn voice conversations
+      - Test error recovery and graceful degradation
+      - Test data persistence from voice interactions
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.8, 2.9, 2.10, 3.1, 3.2, 15.1_
 
 - [ ] 14. Implement security and authentication
   - [ ] 14.1 Set up OAuth 2.0 authentication (Python)
@@ -503,6 +767,33 @@ This implementation plan transforms the TradeSense design into actionable coding
     - Test encryption and decryption
     - Test PII redaction
     - _Requirements: 18.1, 18.2, 18.3, 18.4, 18.9_
+
+  - [ ] 14.7 Comprehensive testing for Task 14 (Security and Authentication)
+    - [ ] 14.7.1 Unit tests
+      - Test OAuth 2.0 token generation and validation
+      - Test JWT token expiration handling
+      - Test RBAC role and permission definitions
+      - Test permission checking logic
+      - Test identity verification code generation
+      - Test AES-256 encryption/decryption
+      - Test PII detection and redaction patterns
+    - [ ] 14.7.2 Integration tests
+      - Test complete authentication flow: login → token → access
+      - Test authorization across all API endpoints
+      - Test identity verification workflow
+      - Test encryption for data at rest and in transit
+      - Test PII redaction in transcriptions and logs
+    - [ ] 14.7.3 System tests
+      - Test authentication performance under load
+      - Test authorization with complex permission hierarchies
+      - Test encryption performance impact
+      - Test PII redaction accuracy with real data
+      - Verify all security requirements are met
+    - [ ] 14.7.4 End-to-end tests
+      - Test complete secure workflow: authentication → authorization → encrypted data access → PII redaction
+      - Test security across all user roles
+      - Test attack scenarios (unauthorized access, token tampering)
+    - _Requirements: 11.3, 11.4, 11.8, 18.1, 18.2, 18.3, 18.4, 18.9_
 
 
 - [ ] 15. Implement observability and monitoring
@@ -556,6 +847,32 @@ This implementation plan transforms the TradeSense design into actionable coding
     - Test metrics collection
     - _Requirements: 9.1, 9.2, 9.4, 9.5_
 
+  - [ ] 15.9 Comprehensive testing for Task 15 (Observability and Monitoring)
+    - [ ] 15.9.1 Unit tests
+      - Test Langfuse SDK initialization and configuration
+      - Test Datadog APM initialization and configuration
+      - Test Sentry initialization and configuration
+      - Test trace creation and emission
+      - Test metrics collection logic
+      - Test alert configuration
+    - [ ] 15.9.2 Integration tests
+      - Test complete tracing flow: operation → trace → Langfuse/Datadog
+      - Test metrics collection and aggregation
+      - Test error capture and reporting to Sentry
+      - Test alert triggering conditions
+      - Test log aggregation in Datadog
+    - [ ] 15.9.3 System tests
+      - Test observability performance impact (<5% overhead)
+      - Test trace completeness for all operations
+      - Test metrics accuracy under load
+      - Test alert delivery and timing
+      - Verify all observability requirements are met
+    - [ ] 15.9.4 End-to-end tests
+      - Test complete observable workflow: operation → traces → metrics → alerts
+      - Test distributed tracing across multiple services
+      - Test error tracking and debugging workflow
+    - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8_
+
 - [ ] 16. Implement error handling and recovery
   - [ ] 16.1 Add voice pipeline error handling (Python)
     - Implement fallback to text input mode
@@ -595,6 +912,32 @@ This implementation plan transforms the TradeSense design into actionable coding
     - Test database transaction retry
     - Test parts not found handling
     - _Requirements: 15.1, 15.2, 15.3, 15.8_
+
+  - [ ] 16.7 Comprehensive testing for Task 16 (Error Handling and Recovery)
+    - [ ] 16.7.1 Unit tests
+      - Test voice pipeline error detection and fallback
+      - Test exponential backoff retry logic
+      - Test API rate limiting handling
+      - Test database transaction retry
+      - Test parts not found handling
+      - Test scheduling conflict resolution
+    - [ ] 16.7.2 Integration tests
+      - Test complete error recovery flows
+      - Test fallback mechanisms across all components
+      - Test error propagation and logging
+      - Test graceful degradation scenarios
+      - Test data consistency after recovery
+    - [ ] 16.7.3 System tests
+      - Test error handling under load
+      - Test recovery time objectives
+      - Test cascading failure prevention
+      - Test error rate thresholds and alerts
+      - Verify all error handling requirements are met
+    - [ ] 16.7.4 End-to-end tests
+      - Test complete failure and recovery scenarios
+      - Test multi-component failure handling
+      - Test user experience during errors and recovery
+    - _Requirements: 15.1, 15.2, 15.3, 15.5, 15.6, 15.8_
 
 - [ ] 17. Checkpoint - Verify complete system integration
   - Ensure all tests pass, ask the user if questions arise.
@@ -691,6 +1034,29 @@ This implementation plan transforms the TradeSense design into actionable coding
     - Document monitoring and alerting setup
     - _Requirements: 12.1, 12.2, 12.3, 12.4, 17.10_
 
+  - [ ] 19.6 Comprehensive testing for Task 19 (Deployment Configurations)
+    - [ ] 19.6.1 Unit tests
+      - Test Docker Compose configuration validity
+      - Test Terraform template syntax
+      - Test environment variable loading
+      - Test health check configurations
+    - [ ] 19.6.2 Integration tests
+      - Test Docker Compose service startup and connectivity
+      - Test Terraform deployment to test environments
+      - Test database and cache connectivity
+      - Test service health checks
+    - [ ] 19.6.3 System tests
+      - Test complete local deployment with Docker Compose
+      - Test Azure deployment with Terraform
+      - Test DigitalOcean deployment with Terraform
+      - Test production environment configuration
+      - Verify all deployment requirements are met
+    - [ ] 19.6.4 End-to-end tests
+      - Test complete deployment workflow: infrastructure → services → verification
+      - Test deployment rollback scenarios
+      - Test zero-downtime deployment
+    - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.8, 17.1, 17.2, 17.3, 17.4, 17.7, 17.8, 17.9, 17.10_
+
 
 - [ ] 20. Implement documentation and knowledge management
   - [ ] 20.1 Set up simple documentation indexing (Python)
@@ -717,6 +1083,32 @@ This implementation plan transforms the TradeSense design into actionable coding
     - Test semantic search accuracy
     - Test retrieval performance
     - _Requirements: 20.2, 20.3, 20.5_
+
+  - [ ] 20.5 Comprehensive testing for Task 20 (Documentation and Knowledge Management)
+    - [ ] 20.5.1 Unit tests
+      - Test document ingestion pipeline
+      - Test PDF, Markdown, HTML parsing
+      - Test embedding generation with Gemini
+      - Test vector storage in PostgreSQL
+      - Test semantic search logic
+      - Test full-text search fallback
+      - Test source citation extraction
+    - [ ] 20.5.2 Integration tests
+      - Test complete indexing flow: document → parse → embed → store
+      - Test search flow: query → embed → search → retrieve → cite
+      - Test retrieval performance with large document sets
+      - Test search accuracy with various query types
+    - [ ] 20.5.3 System tests
+      - Test indexing performance with 1000+ documents
+      - Test search latency (<1s requirement)
+      - Test search accuracy and relevance
+      - Test concurrent search requests
+      - Verify all documentation requirements are met
+    - [ ] 20.5.4 End-to-end tests
+      - Test complete workflow: document upload → indexing → search → retrieval → citation
+      - Test documentation integration with diagnostic agent
+      - Test multi-document search and synthesis
+    - _Requirements: 20.1, 20.2, 20.3, 20.4, 20.5, 20.6, 20.7, 20.8, 20.9_
 
 - [ ] 21. Implement API layer and external integrations
   - [ ] 21.1 Create FastAPI REST API (Python)
@@ -749,6 +1141,33 @@ This implementation plan transforms the TradeSense design into actionable coding
     - Test authentication and authorization
     - _Requirements: 4.1, 7.9, 18.1, 18.2_
 
+  - [ ] 21.5 Comprehensive testing for Task 21 (API Layer and External Integrations)
+    - [ ] 21.5.1 Unit tests
+      - Test FastAPI endpoint definitions
+      - Test request validation with Pydantic
+      - Test authentication middleware
+      - Test rate limiting logic
+      - Test WebSocket connection handling
+      - Test WebRTC signaling logic
+      - Test notification handlers (email, push, Discord)
+    - [ ] 21.5.2 Integration tests
+      - Test complete REST API flows
+      - Test WebSocket real-time updates
+      - Test WebRTC session establishment
+      - Test notification delivery across all channels
+      - Test API authentication and authorization
+    - [ ] 21.5.3 System tests
+      - Test API performance under load (1000+ requests/minute)
+      - Test WebSocket scalability (100+ concurrent connections)
+      - Test WebRTC session management
+      - Test notification delivery reliability
+      - Verify all API requirements are met
+    - [ ] 21.5.4 End-to-end tests
+      - Test complete API workflows: request → validation → processing → response
+      - Test real-time notification delivery
+      - Test WebRTC voice session via API
+    - _Requirements: 4.1, 4.8, 4.9, 7.9, 18.1, 18.2_
+
 - [ ] 22. Implement cloud cost optimization
   - [ ] 22.1 Implement API quota management (Python)
     - Track Gemini API usage (1500 requests/day free tier)
@@ -775,6 +1194,31 @@ This implementation plan transforms the TradeSense design into actionable coding
     - Test quota management
     - Test fallback routing
     - _Requirements: 12.5, 12.6_
+
+  - [ ] 22.5 Comprehensive testing for Task 22 (Cloud Cost Optimization)
+    - [ ] 22.5.1 Unit tests
+      - Test API quota tracking logic
+      - Test caching mechanisms
+      - Test fallback routing logic
+      - Test cost calculation formulas
+      - Test budget alert triggers
+    - [ ] 22.5.2 Integration tests
+      - Test complete cost tracking flow
+      - Test quota exhaustion and fallback
+      - Test caching effectiveness across requests
+      - Test budget alert delivery
+      - Test cost optimization strategies
+    - [ ] 22.5.3 System tests
+      - Test cost tracking accuracy with real API usage
+      - Test caching hit rates
+      - Test quota management under load
+      - Test cost projections accuracy
+      - Verify all cost optimization requirements are met
+    - [ ] 22.5.4 End-to-end tests
+      - Test complete cost-optimized workflow: request → cache check → API call → cost tracking
+      - Test multi-provider fallback scenarios
+      - Test budget limit enforcement
+    - _Requirements: 1.4, 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.8_
 
 
 - [ ] 23. Implement economic tracking and reporting
@@ -803,6 +1247,30 @@ This implementation plan transforms the TradeSense design into actionable coding
     - Test cost calculation accuracy
     - Test credit monitoring
     - _Requirements: 13.6, 13.7, 13.8_
+
+  - [ ] 23.5 Comprehensive testing for Task 23 (Economic Tracking and Reporting)
+    - [ ] 23.5.1 Unit tests
+      - Test cost tracking for each service (Gemini, Azure OpenAI, Azure Speech, FreeSWITCH)
+      - Test monthly cost calculation
+      - Test student credit balance tracking
+      - Test credit alert triggers
+      - Test cost projection formulas
+    - [ ] 23.5.2 Integration tests
+      - Test complete cost tracking flow across all services
+      - Test credit monitoring and alerts
+      - Test dashboard data aggregation
+      - Test cost per job/technician calculations
+    - [ ] 23.5.3 System tests
+      - Test cost tracking accuracy with real usage data
+      - Test credit monitoring reliability
+      - Test dashboard performance
+      - Test cost projection accuracy
+      - Verify all economic tracking requirements are met
+    - [ ] 23.5.4 End-to-end tests
+      - Test complete economic workflow: usage → cost tracking → reporting → alerts
+      - Test multi-service cost aggregation
+      - Test credit exhaustion scenarios
+    - _Requirements: 13.6, 13.7, 13.8, 13.9, 13.10_
 
 - [ ] 24. Implement data privacy and compliance
   - [ ] 24.1 Implement GDPR compliance features (Python)
@@ -836,6 +1304,32 @@ This implementation plan transforms the TradeSense design into actionable coding
     - Test recording consent
     - Test data retention policies
     - _Requirements: 11.9, 18.8_
+
+  - [ ] 24.6 Comprehensive testing for Task 24 (Data Privacy and Compliance)
+    - [ ] 24.6.1 Unit tests
+      - Test GDPR data export functionality
+      - Test GDPR data deletion functionality
+      - Test consent management logic
+      - Test CCPA data access request handling
+      - Test opt-out mechanisms
+      - Test recording consent workflow
+      - Test data retention policy enforcement
+    - [ ] 24.6.2 Integration tests
+      - Test complete GDPR compliance flow: request → export/delete → verify
+      - Test complete CCPA compliance flow
+      - Test recording consent integration with voice pipeline
+      - Test automatic data retention and deletion
+    - [ ] 24.6.3 System tests
+      - Test compliance feature performance
+      - Test data export completeness
+      - Test data deletion thoroughness
+      - Test retention policy accuracy
+      - Verify all compliance requirements are met
+    - [ ] 24.6.4 End-to-end tests
+      - Test complete compliance workflows
+      - Test user rights exercise scenarios
+      - Test data lifecycle from creation to deletion
+    - _Requirements: 11.6, 11.9, 18.8_
 
 - [ ] 25. Final integration and end-to-end testing
   - [ ] 25.1 Create end-to-end test scenarios
