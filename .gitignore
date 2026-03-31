@@ -128,3 +128,8 @@ coverage/
 *.wasm
 *.o
 *.a
+
+
+
+# Documentation files
+*.md 
