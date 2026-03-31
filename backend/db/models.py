@@ -17,13 +17,14 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import INET, JSONB, UUID
 from sqlalchemy.orm import relationship
 
-from backend.db.session import Base
+from db.session import Base
 
 
 class Customer(Base):
     """Customer ORM model."""
 
     __tablename__ = "customers"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     name = Column(String(255), nullable=False)
@@ -46,6 +47,7 @@ class Technician(Base):
     """Technician ORM model."""
 
     __tablename__ = "technicians"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     name = Column(String(255), nullable=False)
@@ -67,6 +69,7 @@ class Lead(Base):
     """Lead ORM model."""
 
     __tablename__ = "leads"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="SET NULL"))
@@ -88,6 +91,7 @@ class Job(Base):
     """Job ORM model."""
 
     __tablename__ = "jobs"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     lead_id = Column(UUID(as_uuid=True), ForeignKey("leads.id", ondelete="SET NULL"))
@@ -121,6 +125,7 @@ class Part(Base):
     """Part ORM model."""
 
     __tablename__ = "parts"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     part_number = Column(String(100), unique=True, nullable=False)
@@ -142,6 +147,7 @@ class JobPart(Base):
     """Job-Part association ORM model."""
 
     __tablename__ = "job_parts"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     job_id = Column(UUID(as_uuid=True), ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False)
@@ -158,6 +164,7 @@ class Conversation(Base):
     """Conversation ORM model."""
 
     __tablename__ = "conversations"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     session_id = Column(String(255), unique=True, nullable=False)
@@ -182,6 +189,7 @@ class ConversationTurn(Base):
     """Conversation turn ORM model."""
 
     __tablename__ = "conversation_turns"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     conversation_id = Column(UUID(as_uuid=True), ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False)
@@ -200,7 +208,7 @@ class AuditLog(Base):
     """Audit log ORM model (partitioned)."""
 
     __tablename__ = "audit_logs"
-    __table_args__ = {"postgresql_partition_by": "RANGE (created_at)"}
+    __table_args__ = {"postgresql_partition_by": "RANGE (created_at)", 'extend_existing': True}
 
     id = Column(UUID(as_uuid=True), default=uuid4)
     entity_type = Column(String(100), nullable=False)
@@ -218,6 +226,7 @@ class MCPToolCall(Base):
     """MCP tool call ORM model."""
 
     __tablename__ = "mcp_tool_calls"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     conversation_id = Column(UUID(as_uuid=True), ForeignKey("conversations.id", ondelete="SET NULL"))

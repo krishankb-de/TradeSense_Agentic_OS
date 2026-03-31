@@ -53,7 +53,7 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-ra -q --strict-markers"
+addopts = "-ra -q --strict-markers -p pytest_asyncio"
 testpaths = [
     "tests",
 ]
@@ -65,6 +65,8 @@ markers = [
     "property: mark test as property-based test",
     "integration: mark test as integration test",
 ]
+
+[tool.pytest_asyncio]
 asyncio_mode = "auto"
 
 [tool.coverage.run]

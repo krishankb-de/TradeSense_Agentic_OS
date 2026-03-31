@@ -108,9 +108,10 @@ async def api_info():
     }
 
 # Add API routers
-from api.routes import voice
+from api.routes import voice, intake
 
 app.include_router(voice.router, prefix="/api/v1/voice", tags=["voice"])
+app.include_router(intake.router, prefix="/api/v1", tags=["intake"])
 
 # TODO: Add more routers as they are implemented
 # from api.routes import agents, jobs, inventory

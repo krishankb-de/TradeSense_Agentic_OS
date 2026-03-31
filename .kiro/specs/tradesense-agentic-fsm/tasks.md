@@ -216,107 +216,107 @@ This implementation plan transforms the TradeSense design into actionable coding
 
 
 - [ ] 6. Implement lightweight pipeline orchestration
-  - [ ] 6.1 Set up FastAPI-based orchestration (Python)
+  - [x] 6.1 Set up FastAPI-based orchestration (Python)
     - Create FastAPI application for workflow coordination
     - Implement simple pipeline execution with async/await
     - Configure secrets management with environment variables
     - Set up basic retry policies
     - _Requirements: 3.1, 3.3, 3.6_
 
-  - [ ] 6.2 Create base pipeline components (Python)
+  - [x] 6.2 Create base pipeline components (Python)
     - Implement pipeline steps for agent execution
     - Create workflow templates for intake, diagnostic, fulfillment
     - Add basic artifact tracking
     - _Requirements: 3.2, 3.5_
 
-  - [ ] 6.3 Implement telemetry integration (Python)
+  - [x] 6.3 Implement telemetry integration (Python)
     - Add Langfuse cloud tracing integration
     - Add Datadog monitoring (GitHub Student - free 2 years)
     - Add Sentry error tracking (500k events/month free)
     - _Requirements: 3.8, 9.1, 9.2, 9.3_
 
-  - [ ]* 6.4 Write property test for pipeline retry behavior
+  - [x] 6.4 Write property test for pipeline retry behavior
     - **Property 16: Pipeline Retry Behavior**
     - **Validates: Requirements 3.4**
 
-  - [ ]* 6.5 Write unit tests for orchestration
+  - [x] 6.5 Write unit tests for orchestration
     - Test pipeline execution and artifact tracking
     - Test secrets management
     - Test retry policies
     - _Requirements: 3.1, 3.3, 3.4_
 
-  - [ ] 6.6 Comprehensive testing for Task 6 (Pipeline Orchestration)
-    - [ ] 6.6.1 Unit tests
+  - [x] 6.6 Comprehensive testing for Task 6 (Pipeline Orchestration)
+    - [x] 6.6.1 Unit tests
       - Test FastAPI application initialization
       - Test pipeline step execution
       - Test workflow template creation
       - Test artifact tracking
       - Test secrets management
       - Test retry policy configuration
-    - [ ] 6.6.2 Integration tests
+    - [x] 6.6.2 Integration tests
       - Test complete pipeline execution with multiple steps
       - Test telemetry integration (Langfuse, Datadog, Sentry)
       - Test error propagation and handling
       - Test concurrent pipeline execution
-    - [ ] 6.6.3 System tests
+    - [x] 6.6.3 System tests
       - Test pipeline performance under load
       - Test observability data collection
       - Test retry behavior with real failures
       - Verify all telemetry is captured correctly
-    - [ ] 6.6.4 End-to-end tests
+    - [x] 6.6.4 End-to-end tests
       - Test complete workflow: trigger → execution → completion → telemetry
       - Test pipeline failure and recovery
       - Test artifact persistence and retrieval
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.8, 9.1, 9.2, 9.3_
 
 - [ ] 7. Implement MCP integration layer
-  - [ ] 7.1 Create MCP client manager (TypeScript)
+  - [x] 7.1 Create MCP client manager (TypeScript)
     - Implement MCP SDK integration for stdio and SSE transports
     - Create connection pooling and lifecycle management
     - Add JSON-RPC 2.0 message serialization/deserialization
     - Implement tool schema caching
     - _Requirements: 10.6, 10.9_
 
-  - [ ] 7.2 Implement FileSystem MCP integration (TypeScript)
+  - [x] 7.2 Implement FileSystem MCP integration (TypeScript)
     - Connect to FileSystem MCP server for local manuals/drawings
     - Implement file search and retrieval
     - Add support for PDF, Markdown, HTML formats
     - _Requirements: 10.1, 20.1, 20.4_
 
-  - [ ] 7.3 Implement Database MCP integration (TypeScript)
+  - [x] 7.3 Implement Database MCP integration (TypeScript)
     - Connect to Database MCP for PostgreSQL/SQLite access
     - Implement query execution and result parsing
     - _Requirements: 10.2_
 
-  - [ ] 7.4 Implement InvenTree API integration (Python)
+  - [x] 7.4 Implement InvenTree API integration (Python)
     - Create InvenTree REST API client
     - Implement inventory queries, updates, and part searches
     - Add authentication and error handling
     - _Requirements: 7.1, 7.2, 7.9_
 
-  - [ ] 7.5 Implement Part-DB integration (Python)
+  - [x] 7.5 Implement Part-DB integration (Python)
     - Create Part-DB REST API client
     - Implement component specification queries
     - Add KiCad symbol/footprint retrieval
     - _Requirements: 7.3, 7.4_
 
-  - [ ] 7.6 Implement KiCost distributor scraping (Python)
+  - [x] 7.6 Implement KiCost distributor scraping (Python)
     - Integrate KiCost library for BOM pricing
     - Configure distributors: Digi-Key, Mouser, Arrow, Newark, TME
     - Implement price comparison and best-price selection
     - _Requirements: 7.5, 7.6, 7.7_
 
-  - [ ] 7.7 Implement Kabaun carbon tracking (Python)
+  - [x] 7.7 Implement Kabaun carbon tracking (Python)
     - Integrate Kabaun library for emission factors
     - Add eGRID, EPA GHG, ADEME dataset queries
     - Implement CodeCarbon for AI infrastructure emissions
     - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
 
-  - [ ] 7.8 Write property test for MCP tool schema validation
+  - [x] 7.8 Write property test for MCP tool schema validation
     - **Property 6: MCP Tool Schema Validation**
     - **Validates: Requirements 10.7, 10.8**
 
-  - [ ]* 7.9 Write property test for MCP caching behavior
+  - [ ] 7.9 Write property test for MCP caching behavior
     - **Property 19: MCP Caching Behavior**
     - **Validates: Requirements 15.2**
 
@@ -324,60 +324,60 @@ This implementation plan transforms the TradeSense design into actionable coding
     - **Property 20: MCP Retry with Exponential Backoff**
     - **Validates: Requirements 15.3**
 
-  - [ ]* 7.11 Write unit tests for MCP integrations
+  - [x]* 7.11 Write unit tests for MCP integrations
     - Test connection management and failover
     - Test tool execution and result validation
     - Test InvenTree, Part-DB, KiCost, Kabaun integrations
     - _Requirements: 10.1, 10.2, 10.9, 15.2, 15.3_
 
-  - [ ] 7.12 Comprehensive testing for Task 7 (MCP Integration)
-    - [ ] 7.12.1 Unit tests
+  - [x] 7.12 Comprehensive testing for Task 7 (MCP Integration)
+    - [x] 7.12.1 Unit tests
       - Test MCP client initialization and connection
       - Test tool schema parsing and validation
       - Test JSON-RPC message serialization
       - Test connection pooling and lifecycle
       - Test each MCP integration (FileSystem, Database, InvenTree, Part-DB, KiCost, Kabaun)
       - Test error handling for each integration
-    - [ ] 7.12.2 Integration tests
+    - [x] 7.12.2 Integration tests
       - Test MCP tool execution with real servers
       - Test tool chaining and composition
       - Test caching behavior across multiple calls
       - Test retry logic with exponential backoff
       - Test failover between MCP servers
-    - [ ] 7.12.3 System tests
+    - [x] 7.12.3 System tests
       - Test MCP throughput (1000+ calls/minute)
       - Test concurrent tool execution
       - Test performance with large result sets
       - Test memory usage with connection pooling
       - Verify all MCP-related requirements are met
-    - [ ] 7.12.4 End-to-end tests
+    - [x] 7.12.4 End-to-end tests
       - Test complete workflow: agent request → MCP tool call → result processing
       - Test multi-tool workflows (e.g., search parts → check inventory → get pricing)
       - Test error recovery and fallback mechanisms
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.9, 8.1, 8.2, 8.3, 8.4, 8.5, 10.1, 10.2, 10.6, 10.7, 10.8, 10.9, 15.2, 15.3, 20.1, 20.4_
 
 
-- [ ] 8. Implement CrewAI Intake Agent
-  - [ ] 8.1 Create Intake Agent with CrewAI (Python)
+- [x] 8. Implement CrewAI Intake Agent
+  - [x] 8.1 Create Intake Agent with CrewAI (Python)
     - Define intake agent roles and goals
     - Implement lead capture from voice/SMS/web sources
     - Add PydanticAI integration for structured output extraction
     - Connect to Gemini API (free tier) with Azure OpenAI fallback
     - _Requirements: 4.1, 4.2, 4.9_
 
-  - [ ] 8.2 Implement triage and classification logic (Python)
+  - [x] 8.2 Implement triage and classification logic (Python)
     - Create urgency classifier (emergency, urgent, routine)
     - Implement service type detection
     - Add confidence scoring
     - _Requirements: 4.3, 4.4_
 
-  - [ ] 8.3 Integrate with cloud inventory services (Python)
+  - [x] 8.3 Integrate with cloud inventory services (Python)
     - Create simple inventory tracking in PostgreSQL
     - Implement parts availability checking
     - Add basic parts search functionality
     - _Requirements: 4.6, 4.7_
 
-  - [ ] 8.4 Implement WebRTC + notification integration (Python)
+  - [x] 8.4 Implement WebRTC + notification integration (Python)
     - Set up WebRTC signaling server for voice interactions
     - Implement web push notifications for technician alerts
     - Create email notification system for customer updates
@@ -385,7 +385,7 @@ This implementation plan transforms the TradeSense design into actionable coding
     - (Optional) Set up FreeSWITCH for traditional phone system integration
     - _Requirements: 4.1, 4.8_
 
-  - [ ] 8.5 Create lead creation and notification logic (Python)
+  - [x] 8.5 Create lead creation and notification logic (Python)
     - Implement lead record creation in PostgreSQL
     - Add technician notification via SMS/push
     - Integrate with FastAPI pipeline
@@ -402,8 +402,8 @@ This implementation plan transforms the TradeSense design into actionable coding
     - Test notification delivery (email, push, Discord)
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-  - [ ] 8.8 Comprehensive testing for Task 8 (Intake Agent)
-    - [ ] 8.8.1 Unit tests
+  - [x] 8.8 Comprehensive testing for Task 8 (Intake Agent)
+    - [x] 8.8.1 Unit tests
       - Test CrewAI agent initialization and configuration
       - Test lead capture from voice, SMS, web sources
       - Test urgency classification logic
@@ -411,58 +411,58 @@ This implementation plan transforms the TradeSense design into actionable coding
       - Test confidence scoring
       - Test parts availability checking
       - Test notification creation (email, push, Discord)
-    - [ ] 8.8.2 Integration tests
+    - [x] 8.8.2 Integration tests
       - Test complete intake flow: capture → classify → create lead → notify
       - Test WebRTC voice integration with STT
       - Test inventory service integration
       - Test notification delivery across all channels
       - Test LLM integration (Gemini/Azure) for classification
-    - [ ] 8.8.3 System tests
+    - [x] 8.8.3 System tests
       - Test intake performance under load (100+ concurrent requests)
       - Test classification accuracy with real data
       - Test notification delivery reliability
       - Test WebRTC session management
       - Verify all intake-related requirements are met
-    - [ ] 8.8.4 End-to-end tests
+    - [x] 8.8.4 End-to-end tests
       - Test complete customer intake: voice call → transcription → classification → lead creation → technician notification
       - Test multi-channel intake (voice, SMS, web)
       - Test error handling and fallback mechanisms
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.6, 4.7, 4.8, 4.9, 4.10_
 
-- [ ] 9. Implement LangGraph + AutoGen Diagnostic Agent
-  - [ ] 9.1 Create LangGraph diagnostic workflow (TypeScript)
+- [x] 9. Implement LangGraph + AutoGen Diagnostic Agent
+  - [x] 9.1 Create LangGraph diagnostic workflow (TypeScript)
     - Define diagnostic state graph with reasoning chains
     - Implement issue analysis nodes
     - Add state persistence to Redis
     - Connect to Gemini API with Azure OpenAI fallback
     - _Requirements: 5.1, 5.2_
 
-  - [ ] 9.2 Implement multimodal image parsing (Python)
+  - [x] 9.2 Implement multimodal image parsing (Python)
     - Integrate Gemini Vision API for image understanding
     - Create equipment label OCR pipeline
     - Extract manufacturer, model number, serial number
     - _Requirements: 5.3, 5.4, 19.1, 19.2, 19.3, 19.4, 19.5, 19.6_
 
-  - [ ] 9.3 Implement parts sourcing with alternatives (Python)
+  - [x] 9.3 Implement parts sourcing with alternatives (Python)
     - Query PostgreSQL inventory for primary parts
     - Implement simple parts database
     - Create basic price comparison logic
     - Find compatible alternatives when unavailable
     - _Requirements: 5.5, 5.6, 7.5, 7.6, 7.7_
 
-  - [ ] 9.4 Create repair guide generation (Python)
+  - [x] 9.4 Create repair guide generation (Python)
     - Use Gemini API for step-by-step instructions
     - Add safety warnings and best practices
     - Include parts list and tools required
     - _Requirements: 5.7_
 
-  - [ ] 9.5 Implement AutoGen collaborative troubleshooting (Python)
+  - [x] 9.5 Implement AutoGen collaborative troubleshooting (Python)
     - Create AutoGen conversational agents
     - Implement multi-turn troubleshooting dialogue
     - Add technician feedback integration
     - _Requirements: 5.8, 5.11_
 
-  - [ ] 9.6 Integrate simple documentation RAG (Python)
+  - [x] 9.6 Integrate simple documentation RAG (Python)
     - Set up basic document indexing with embeddings
     - Index technical manuals from local filesystem
     - Implement semantic search with Gemini embeddings
@@ -484,8 +484,8 @@ This implementation plan transforms the TradeSense design into actionable coding
     - Test repair guide generation
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6_
 
-  - [ ] 9.10 Comprehensive testing for Task 9 (Diagnostic Agent)
-    - [ ] 9.10.1 Unit tests
+  - [x] 9.10 Comprehensive testing for Task 9 (Diagnostic Agent)
+    - [x] 9.10.1 Unit tests
       - Test LangGraph workflow initialization
       - Test diagnostic reasoning chain logic
       - Test Gemini Vision API integration
@@ -495,59 +495,59 @@ This implementation plan transforms the TradeSense design into actionable coding
       - Test repair guide generation
       - Test AutoGen agent collaboration
       - Test documentation RAG search
-    - [ ] 9.10.2 Integration tests
+    - [x] 9.10.2 Integration tests
       - Test complete diagnostic flow: issue → analysis → parts → repair guide
       - Test multimodal image processing pipeline
       - Test parts sourcing with inventory and pricing APIs
       - Test documentation retrieval and citation
       - Test LLM integration (Gemini/Azure) for diagnosis
-    - [ ] 9.10.3 System tests
+    - [x] 9.10.3 System tests
       - Test diagnostic performance under load
       - Test image processing accuracy with real equipment photos
       - Test parts availability accuracy
       - Test documentation retrieval performance (<1s)
       - Verify all diagnostic-related requirements are met
-    - [ ] 9.10.4 End-to-end tests
+    - [x] 9.10.4 End-to-end tests
       - Test complete diagnostic workflow: technician photo → equipment identification → parts sourcing → repair guide
       - Test multi-turn troubleshooting with AutoGen
       - Test error handling and fallback mechanisms
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 5.11, 7.5, 7.6, 7.7, 19.1, 19.2, 19.3, 19.4, 19.5, 19.6, 20.2, 20.3, 20.6, 20.9_
 
 
-- [ ] 10. Implement CrewAI Fulfillment Agent
-  - [ ] 10.1 Create Fulfillment Agent with CrewAI (Python)
+- [x] 10. Implement CrewAI Fulfillment Agent
+  - [x] 10.1 Create Fulfillment Agent with CrewAI (Python)
     - Define fulfillment agent roles and goals
     - Implement job completion logging
     - Add voice-driven data capture
     - Connect to Gemini API with Azure OpenAI fallback
     - _Requirements: 6.7, 6.11_
 
-  - [ ] 10.2 Implement schedule optimization algorithm (Python)
+  - [x] 10.2 Implement schedule optimization algorithm (Python)
     - Create job assignment logic with skill matching
     - Implement route optimization to minimize travel time
     - Add constraint satisfaction (time windows, skills)
     - Calculate utilization rate (target: 75%+)
     - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-  - [ ] 10.3 Implement emergency job prioritization (Python)
+  - [x] 10.3 Implement emergency job prioritization (Python)
     - Add priority-based scheduling
     - Implement schedule re-optimization for emergencies
     - _Requirements: 6.5, 6.6_
 
-  - [ ] 10.4 Implement basic carbon footprint calculation (Python)
+  - [x] 10.4 Implement basic carbon footprint calculation (Python)
     - Create simple emission calculation formulas
     - Calculate travel emissions using distance and vehicle type
     - Track basic job-related emissions
     - Sum all emission sources
     - _Requirements: 6.8, 8.6, 8.7, 8.9_
 
-  - [ ] 10.5 Create compliance reporting (Python)
+  - [x] 10.5 Create compliance reporting (Python)
     - Generate sustainability reports
     - Determine compliance status against regulations
     - Provide emission reduction recommendations
     - _Requirements: 6.10, 8.8_
 
-  - [ ] 10.6 Implement KPI tracking (Python)
+  - [x] 10.6 Implement KPI tracking (Python)
     - Track first-time fix rate
     - Track job completion rate
     - Track technician utilization
@@ -577,8 +577,8 @@ This implementation plan transforms the TradeSense design into actionable coding
     - Test KPI tracking
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.8_
 
-  - [ ] 10.12 Comprehensive testing for Task 10 (Fulfillment Agent)
-    - [ ] 10.12.1 Unit tests
+  - [x] 10.12 Comprehensive testing for Task 10 (Fulfillment Agent)
+    - [x] 10.12.1 Unit tests
       - Test CrewAI agent initialization
       - Test job assignment logic with skill matching
       - Test route optimization algorithm
@@ -587,50 +587,50 @@ This implementation plan transforms the TradeSense design into actionable coding
       - Test carbon footprint calculation formulas
       - Test compliance reporting logic
       - Test KPI tracking and metrics
-    - [ ] 10.12.2 Integration tests
+    - [x] 10.12.2 Integration tests
       - Test complete fulfillment flow: job → schedule → optimize → assign → track
       - Test schedule re-optimization for emergencies
       - Test carbon calculation with real job data
       - Test compliance report generation
       - Test voice-driven job completion logging
-    - [ ] 10.12.3 System tests
+    - [x] 10.12.3 System tests
       - Test schedule optimization with 50+ jobs and 10+ technicians
       - Test optimization performance (<5s for 100 jobs)
       - Test utilization rate calculation (target 75%+)
       - Test carbon tracking accuracy
       - Verify all fulfillment-related requirements are met
-    - [ ] 10.12.4 End-to-end tests
+    - [x] 10.12.4 End-to-end tests
       - Test complete workflow: job completion → schedule update → carbon tracking → KPI update
       - Test emergency job insertion and re-optimization
       - Test compliance reporting with real data
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.10, 6.11, 8.6, 8.7, 8.8, 8.9, 9.7, 9.8_
 
-- [ ] 11. Checkpoint - Verify agent implementations
+- [x] 11. Checkpoint - Verify agent implementations
   - Ensure all tests pass, ask the user if questions arise.
 
 
-- [ ] 12. Implement agent routing and conversation management
-  - [ ] 12.1 Create intent classification service (Python)
+- [x] 12. Implement agent routing and conversation management
+  - [x] 12.1 Create intent classification service (Python)
     - Implement intent classifier using Gemini API
     - Define intent types: JOB_COMPLETION, LEAD_INTAKE, DIAGNOSIS, PARTS_QUERY, SCHEDULING
     - Add confidence scoring (threshold: 0.6)
     - _Requirements: 15.4_
 
-  - [ ] 12.2 Implement agent routing logic (Python)
+  - [x] 12.2 Implement agent routing logic (Python)
     - Create routeToAgent function with intent-to-agent mapping
     - Add agent capability matching
     - Implement fallback to clarifying questions when confidence < 0.6
     - Log routing decisions to audit trail
     - _Requirements: 15.4_
 
-  - [ ] 12.3 Create conversation context manager (Python)
+  - [x] 12.3 Create conversation context manager (Python)
     - Implement ConversationContext model
     - Add session state management in Redis
     - Track conversation history and entities
     - Implement context passing between agents
     - _Requirements: 3.2, 4.10_
 
-  - [ ] 12.4 Implement audit trail logging (Python)
+  - [x] 12.4 Implement audit trail logging (Python)
     - Log all conversation turns with timestamps
     - Log all API calls and costs
     - Log all agent routing decisions
@@ -652,33 +652,33 @@ This implementation plan transforms the TradeSense design into actionable coding
     - Test audit trail logging
     - _Requirements: 3.1, 3.2, 15.4, 18.6_
 
-  - [ ] 12.8 Comprehensive testing for Task 12 (Agent Routing and Conversation)
-    - [ ] 12.8.1 Unit tests
+  - [x] 12.8 Comprehensive testing for Task 12 (Agent Routing and Conversation)
+    - [x] 12.8.1 Unit tests
       - Test intent classification with various inputs
       - Test confidence scoring accuracy
       - Test agent routing decision logic
       - Test conversation context creation and updates
       - Test context passing between agents
       - Test audit trail logging format and completeness
-    - [ ] 12.8.2 Integration tests
+    - [x] 12.8.2 Integration tests
       - Test complete routing flow: input → classify → route → execute → log
       - Test multi-turn conversations with context preservation
       - Test agent handoff scenarios
       - Test fallback to clarifying questions
       - Test audit trail persistence to database
-    - [ ] 12.8.3 System tests
+    - [x] 12.8.3 System tests
       - Test routing performance under load
       - Test classification accuracy with real conversations
       - Test context management with concurrent sessions
       - Test audit trail query performance
       - Verify all routing-related requirements are met
-    - [ ] 12.8.4 End-to-end tests
+    - [x] 12.8.4 End-to-end tests
       - Test complete conversation: user input → intent → routing → agent execution → response → audit
       - Test complex multi-agent workflows
       - Test error handling and recovery
     - _Requirements: 3.1, 3.2, 3.3, 4.10, 11.6, 15.4, 18.6, 18.7, 18.8_
 
-- [ ] 13. Implement voice-to-agent integration
+- [~] 13. Implement voice-to-agent integration
   - [ ] 13.1 Create voice session manager (Python)
     - Implement VoiceSession model
     - Add session lifecycle management
@@ -731,7 +731,7 @@ This implementation plan transforms the TradeSense design into actionable coding
       - Test data persistence from voice interactions
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.8, 2.9, 2.10, 3.1, 3.2, 15.1_
 
-- [ ] 14. Implement security and authentication
+- [~] 14. Implement security and authentication
   - [ ] 14.1 Set up OAuth 2.0 authentication (Python)
     - Implement OAuth 2.0 provider integration
     - Create JWT token generation and validation

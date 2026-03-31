@@ -26,8 +26,8 @@ google-generativeai>=0.3.0
 # Agent Frameworks (Lightweight - no ZenML for now)
 # Note: ZenML requires Python 3.10+ for latest versions
 # We'll add it later when implementing full orchestration
-# TEMPORARILY COMMENTED - Add back after core setup works
-# pydantic-ai>=0.0.8  # Structured outputs
+pydantic-ai>=0.0.8  # Structured outputs
+# crewai>=0.28.0  # Multi-agent workflows (requires Python <=3.13, commented for Python 3.14)
 
 # Communication (Open Source - No Twilio!)
 aiortc>=1.6.0  # WebRTC for Python

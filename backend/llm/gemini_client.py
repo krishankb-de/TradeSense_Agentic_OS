@@ -267,3 +267,209 @@ class GeminiClient(LLMClient):
         """Clear the response cache."""
         self.cache.clear()
         logger.info("Response cache cleared")
+    
+    async def generate_with_image(
+        self,
+        prompt: str,
+        image_data: str,
+        image_format: str = "jpeg",
+        temperature: float = 0.1,
+        max_tokens: Optional[int] = None,
+        **kwargs
+    ) -> str:
+        """
+        Generate text using Gemini Vision API with image input.
+        
+        Args:
+            prompt: Text prompt
+            image_data: Base64-encoded image data
+            image_format: Image format (jpeg, png, etc.)
+            temperature: Sampling temperature
+            max_tokens: Maximum tokens to generate
+            **kwargs: Additional generation parameters
+        
+        Returns:
+            Generated text response
+        
+        Raises:
+            LLMError: If generation fails
+        """
+        import base64
+        from PIL import Image
+        import io
+        
+        # Check rate limits
+        if not self._check_rate_limits():
+            raise LLMError(
+                "Rate limit exceeded",
+                error_type="rate_limit",
+                details={
+                    "requests_today": self.requests_today,
+                    "daily_limit": self.FREE_TIER_DAILY_LIMIT,
+                }
+            )
+        
+        # Wait for rate limit if needed
+        self._wait_for_rate_limit()
+        
+        try:
+            # Decode base64 image
+            image_bytes = base64.b64decode(image_data)
+            image = Image.open(io.BytesIO(image_bytes))
+            
+            # Configure generation
+            generation_config = GenerationConfig(
+                temperature=temperature,
+                max_output_tokens=max_tokens,
+                **kwargs
+            )
+            
+            # Generate with image
+            start_time = time.time()
+            response = self.model.generate_content(
+                [prompt, image],
+                generation_config=generation_config
+            )
+            latency = time.time() - start_time
+            
+            # Update counters
+            self.requests_today += 1
+            self.requests_this_minute += 1
+            self.last_request_time = time.time()
+            
+            # Extract text
+            text = response.text if response.text else ""
+            
+            logger.info(
+                f"Generated vision response in {latency:.2f}s "
+                f"({self.requests_today}/{self.FREE_TIER_DAILY_LIMIT} requests today)"
+            )
+            
+            return text
+            
+        except Exception as e:
+            logger.error(f"Gemini Vision API error: {str(e)}")
+            raise LLMError(
+                f"Gemini vision generation failed: {str(e)}",
+                error_type="api_error",
+                details={"original_error": str(e)}
+            )
+    
+    async def generate_embedding(self, text: str) -> List[float]:
+        """
+        Generate text embedding using Gemini.
+        
+        Args:
+            text: Text to embed
+        
+        Returns:
+            Embedding vector
+        
+        Raises:
+            LLMError: If embedding generation fails
+        """
+        # Check rate limits
+        if not self._check_rate_limits():
+            raise LLMError(
+                "Rate limit exceeded",
+                error_type="rate_limit",
+                details={
+                    "requests_today": self.requests_today,
+                    "daily_limit": self.FREE_TIER_DAILY_LIMIT,
+                }
+            )
+        
+        try:
+            # Use Gemini embedding model
+            result = genai.embed_content(
+                model="models/text-embedding-004",
+                content=text,
+                task_type="retrieval_document"
+            )
+            
+            # Update counters
+            self.requests_today += 1
+            self.requests_this_minute += 1
+            self.last_request_time = time.time()
+            
+            return result['embedding']
+            
+        except Exception as e:
+            logger.error(f"Gemini embedding error: {str(e)}")
+            raise LLMError(
+                f"Gemini embedding failed: {str(e)}",
+                error_type="api_error",
+                details={"original_error": str(e)}
+            )
+    
+    async def generate_chat(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float = 0.7,
+        max_tokens: Optional[int] = None,
+        **kwargs
+    ) -> str:
+        """
+        Generate chat response using Gemini.
+        
+        Args:
+            messages: List of message dicts with 'role' and 'content'
+            temperature: Sampling temperature
+            max_tokens: Maximum tokens to generate
+            **kwargs: Additional generation parameters
+        
+        Returns:
+            Generated response text
+        
+        Raises:
+            LLMError: If generation fails
+        """
+        # Check rate limits
+        if not self._check_rate_limits():
+            raise LLMError(
+                "Rate limit exceeded",
+                error_type="rate_limit",
+                details={
+                    "requests_today": self.requests_today,
+                    "daily_limit": self.FREE_TIER_DAILY_LIMIT,
+                }
+            )
+        
+        # Wait for rate limit if needed
+        self._wait_for_rate_limit()
+        
+        try:
+            # Start chat session
+            chat = self.model.start_chat(history=[])
+            
+            # Configure generation
+            generation_config = GenerationConfig(
+                temperature=temperature,
+                max_output_tokens=max_tokens,
+                **kwargs
+            )
+            
+            # Build conversation
+            response_text = ""
+            for msg in messages:
+                if msg['role'] == 'user':
+                    response = chat.send_message(
+                        msg['content'],
+                        generation_config=generation_config
+                    )
+                    response_text = response.text
+            
+            # Update counters
+            self.requests_today += 1
+            self.requests_this_minute += 1
+            self.last_request_time = time.time()
+            
+            return response_text
+            
+        except Exception as e:
+            logger.error(f"Gemini chat error: {str(e)}")
+            raise LLMError(
+                f"Gemini chat failed: {str(e)}",
+                error_type="api_error",
+                details={"original_error": str(e)}
+            )

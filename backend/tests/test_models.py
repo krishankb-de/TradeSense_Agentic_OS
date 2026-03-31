@@ -7,7 +7,7 @@ import pytest
 from datetime import datetime, timedelta
 from pydantic import ValidationError
 
-from core.models import (
+from backend.core.models import (
     # Enums
     LeadSource, LeadStatus, Urgency, JobStatus, JobPriority,
     TechnicianStatus, ConversationChannel, ConversationStatus,
