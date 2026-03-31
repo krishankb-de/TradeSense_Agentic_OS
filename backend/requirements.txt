@@ -51,6 +51,10 @@ passlib[bcrypt]==1.7.4
 python-dateutil==2.8.2
 requests>=2.31.0
 
+# Security & Encryption
+cryptography>=41.0.0  # AES-256 encryption
+pyjwt>=2.8.0  # JWT token handling
+
 # Email notifications (FREE)
 aiosmtplib>=3.0.0  # Async SMTP client
 
