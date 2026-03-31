@@ -1,0 +1,86 @@
+# ============================================================================
+# CLOUD-BASED LIGHTWEIGHT REQUIREMENTS (GitHub Student Pack)
+# Optimized for Lenovo SlimPad 5 - No heavy local AI models
+# ============================================================================
+
+# Core Framework
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+pydantic>=2.5.0,<3.0.0  # Use flexible version to get pre-built wheels
+pydantic-settings==2.1.0
+
+# Database
+sqlalchemy==2.0.25
+alembic==1.13.1
+# Use psycopg (v3) instead of psycopg2-binary for Python 3.14 compatibility
+psycopg[binary]>=3.1.0
+redis==5.0.1
+
+# Azure Cloud Services (FREE with Student Pack)
+openai>=1.12.0  # Azure OpenAI SDK
+azure-cognitiveservices-speech>=1.40.0  # Azure Speech Services
+
+# Google Gemini API (FREE tier)
+google-generativeai>=0.3.0
+
+# Agent Frameworks (Lightweight - no ZenML for now)
+# Note: ZenML requires Python 3.10+ for latest versions
+# We'll add it later when implementing full orchestration
+# TEMPORARILY COMMENTED - Add back after core setup works
+# pydantic-ai>=0.0.8  # Structured outputs
+
+# Communication (Open Source - No Twilio!)
+aiortc>=1.6.0  # WebRTC for Python
+aiohttp>=3.9.0  # HTTP client/server for WebRTC signaling
+websockets>=12.0  # WebSocket support
+
+# Observability (Cloud-based)
+ddtrace>=2.5.0  # Datadog APM
+sentry-sdk[fastapi]>=1.40.0  # Sentry error tracking
+
+# Langfuse (Self-hosted observability)
+langfuse>=2.0.0
+
+# Utilities
+python-dotenv==1.0.0
+python-multipart==0.0.6
+httpx==0.26.0
+aiofiles==23.2.1
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-dateutil==2.8.2
+requests>=2.31.0
+
+# Email notifications (FREE)
+aiosmtplib>=3.0.0  # Async SMTP client
+
+# Testing
+pytest==7.4.4
+pytest-asyncio==0.23.3
+pytest-cov==4.1.0
+hypothesis==6.96.1
+faker==22.0.0
+
+# Development
+black==23.12.1
+flake8==7.0.0
+mypy==1.8.0
+isort==5.13.2
+
+# ============================================================================
+# OPTIONAL: Add these later when implementing specific features
+# ============================================================================
+# crewai>=0.28.0  # For multi-agent workflows (requires Python 3.10+)
+# langgraph>=0.2.0  # For graph-based agent orchestration
+# llama-index>=0.10.0  # For RAG over documentation
+# zenml>=0.91.0  # For production pipeline orchestration (requires Python 3.10+)
+
+# ============================================================================
+# NOT NEEDED for cloud-based approach:
+# ============================================================================
+# ollama  # Local LLM serving (replaced by Azure OpenAI)
+# faster-whisper  # Local STT (replaced by Azure Speech)
+# piper-tts  # Local TTS (replaced by Azure Speech)
+# silero-vad  # Local VAD (replaced by Azure Speech)
+# kabaun  # Carbon tracking (add later)
+# codecarbon  # AI emissions tracking (add later)

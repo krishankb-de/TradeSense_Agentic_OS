@@ -1,0 +1,220 @@
+version: '3.8'
+
+services:
+  # ============================================================================
+  # Database Services
+  # ============================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: tradesense-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tradesense}
+      POSTGRES_USER: ${POSTGRES_USER:-tradesense}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme_secure_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tradesense}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tradesense-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: tradesense-redis
+    command: redis-server --requirepass ${REDIS_PASSWORD:-changeme_redis_password}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tradesense-network
+
+  # ============================================================================
+  # Local LLM Inference
+  # ============================================================================
+  ollama:
+    image: ollama/ollama:latest
+    container_name: tradesense-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_NUM_PARALLEL=4
+      - OLLAMA_MAX_LOADED_MODELS=3
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - tradesense-network
+    restart: unless-stopped
+
+  vllm:
+    image: vllm/vllm-openai:latest
+    container_name: tradesense-vllm
+    ports:
+      - "8000:8000"
+    volumes:
+      - vllm-data:/root/.cache/huggingface
+    environment:
+      - VLLM_HOST=0.0.0.0
+      - VLLM_PORT=8000
+      - HUGGING_FACE_HUB_TOKEN=${HUGGING_FACE_HUB_TOKEN:-}
+    command: >
+      --model ${VLLM_MODEL:-meta-llama/Llama-3.2-3B-Instruct}
+      --dtype auto
+      --max-model-len 8192
+      --gpu-memory-utilization 0.9
+      --enable-prefix-caching
+      --disable-log-requests
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    networks:
+      - tradesense-network
+    restart: unless-stopped
+    profiles:
+      - vllm
+
+  # ============================================================================
+  # Inventory Management
+  # ============================================================================
+  inventree:
+    image: inventree/inventree:stable
+    container_name: tradesense-inventree
+    ports:
+      - "8080:8080"
+    environment:
+      INVENTREE_DB_ENGINE: postgresql
+      INVENTREE_DB_NAME: ${POSTGRES_DB:-tradesense}
+      INVENTREE_DB_USER: ${POSTGRES_USER:-tradesense}
+      INVENTREE_DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme_secure_password}
+      INVENTREE_DB_HOST: postgres
+      INVENTREE_DB_PORT: 5432
+      INVENTREE_ADMIN_USER: admin
+      INVENTREE_ADMIN_PASSWORD: ${INVENTREE_ADMIN_PASSWORD:-changeme_admin}
+      INVENTREE_ADMIN_EMAIL: admin@tradesense.local
+    volumes:
+      - inventree-data:/home/inventree/data
+      - inventree-media:/home/inventree/media
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - tradesense-network
+
+  # ============================================================================
+  # Observability (Self-Hosted)
+  # ============================================================================
+  langfuse:
+    image: langfuse/langfuse:latest
+    container_name: tradesense-langfuse
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-tradesense}:${POSTGRES_PASSWORD:-changeme_secure_password}@postgres:5432/${POSTGRES_DB:-tradesense}
+      NEXTAUTH_SECRET: ${LANGFUSE_SECRET_KEY:-changeme_langfuse_secret}
+      NEXTAUTH_URL: http://localhost:3000
+      SALT: ${LANGFUSE_SALT:-changeme_salt}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - tradesense-network
+
+  phoenix:
+    image: arizephoenix/phoenix:latest
+    container_name: tradesense-phoenix
+    ports:
+      - "6006:6006"
+    environment:
+      PHOENIX_PORT: 6006
+      PHOENIX_HOST: 0.0.0.0
+    volumes:
+      - phoenix-data:/phoenix/data
+    networks:
+      - tradesense-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: tradesense-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - tradesense-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: tradesense-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-changeme_grafana_password}
+      GF_INSTALL_PLUGINS: grafana-clock-panel
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    networks:
+      - tradesense-network
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  postgres-data:
+  redis-data:
+  ollama-data:
+  vllm-data:
+  inventree-data:
+  inventree-media:
+  phoenix-data:
+  prometheus-data:
+  grafana-data:
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  tradesense-network:
+    driver: bridge
