@@ -1,0 +1,122 @@
+# TradeSense Local Development - Lightweight Configuration
+# Optimized for GitHub Student Pack with cloud AI services
+# Total RAM usage: ~2-3GB (PostgreSQL + Redis only)
+
+version: '3.8'
+
+services:
+  # ============================================================================
+  # Database Services (Lightweight - Local Development Only)
+  # ============================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: tradesense-postgres-local
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tradesense}
+      POSTGRES_USER: ${POSTGRES_USER:-tradesense}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev_password_change_in_production}
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-local-data:/var/lib/postgresql/data
+      - ./backend/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tradesense} -d ${POSTGRES_DB:-tradesense}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.5'
+    networks:
+      - tradesense-local
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: tradesense-redis-local
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:-dev_redis_password}
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --save 60 1
+      --loglevel warning
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-local-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+    networks:
+      - tradesense-local
+    restart: unless-stopped
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  postgres-local-data:
+    driver: local
+  redis-local-data:
+    driver: local
+
+# ============================================================================
+# Networks
+# ============================================================================
+networks:
+  tradesense-local:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ============================================================================
+# Usage Instructions
+# ============================================================================
+# 
+# Start services:
+#   docker-compose -f docker-compose.local.yml up -d
+#
+# Stop services:
+#   docker-compose -f docker-compose.local.yml down
+#
+# View logs:
+#   docker-compose -f docker-compose.local.yml logs -f
+#
+# Reset data (WARNING: deletes all data):
+#   docker-compose -f docker-compose.local.yml down -v
+#
+# Check resource usage:
+#   docker stats
+#
+# Expected RAM usage: ~2-3GB total
+# - PostgreSQL: ~512MB
+# - Redis: ~256MB
+# - Docker overhead: ~200MB
+#
+# Note: This configuration does NOT include:
+# - Local LLM models (use Azure OpenAI instead)
+# - Local voice processing (use Azure Speech Services instead)
+# - Observability stack (use Datadog/Sentry cloud services instead)
+#
+# See CLOUD_ARCHITECTURE.md for cloud service setup instructions.

@@ -14,6 +14,7 @@ from datetime import datetime
 from .base import LLMClient, LLMResponse, LLMError
 from .gemini_client import GeminiClient
 from .azure_openai_client import AzureOpenAIClient
+from .cost_optimizer import get_cost_optimizer, ServiceType
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +62,7 @@ class UnifiedLLMClient:
         azure_deployment: str = "gpt-35-turbo",
         enable_logging: bool = True,
         max_log_entries: int = 1000,
+        enable_cost_optimization: bool = True,
     ):
         """
         Initialize unified LLM client.
@@ -72,10 +74,15 @@ class UnifiedLLMClient:
             azure_deployment: Azure OpenAI deployment name
             enable_logging: Enable request/response logging
             max_log_entries: Maximum number of log entries to keep
+            enable_cost_optimization: Enable cost optimization features
         """
         self.enable_logging = enable_logging
         self.max_log_entries = max_log_entries
         self.request_logs: List[RequestLog] = []
+        self.enable_cost_optimization = enable_cost_optimization
+        
+        # Get cost optimizer
+        self.cost_optimizer = get_cost_optimizer() if enable_cost_optimization else None
         
         # Initialize clients
         self.gemini_client: Optional[GeminiClient] = None
@@ -171,26 +178,58 @@ class UnifiedLLMClient:
         self.total_requests += 1
         start_time = time.time()
         
+        # Check cache first if cost optimization enabled
+        if self.cost_optimizer:
+            service = ServiceType.GEMINI if prefer_provider != LLMProvider.AZURE_OPENAI else ServiceType.AZURE_OPENAI
+            cached_response = self.cost_optimizer.get_cached_response(
+                service=service,
+                operation="generate",
+                prompt=prompt,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                **kwargs
+            )
+            if cached_response:
+                logger.info(f"Returning cached response for {service.value}")
+                return cached_response
+        
         # Determine provider order
         if prefer_provider == LLMProvider.AZURE_OPENAI:
             providers = [
-                (LLMProvider.AZURE_OPENAI, self.azure_client),
-                (LLMProvider.GEMINI, self.gemini_client),
+                (LLMProvider.AZURE_OPENAI, self.azure_client, ServiceType.AZURE_OPENAI),
+                (LLMProvider.GEMINI, self.gemini_client, ServiceType.GEMINI),
             ]
         else:
             # Default: Try Gemini first (free), then Azure (student credits)
             providers = [
-                (LLMProvider.GEMINI, self.gemini_client),
-                (LLMProvider.AZURE_OPENAI, self.azure_client),
+                (LLMProvider.GEMINI, self.gemini_client, ServiceType.GEMINI),
+                (LLMProvider.AZURE_OPENAI, self.azure_client, ServiceType.AZURE_OPENAI),
             ]
         
         # Filter out None clients
-        providers = [(p, c) for p, c in providers if c is not None]
+        providers = [(p, c, s) for p, c, s in providers if c is not None]
         
         last_error = None
         fallback_used = False
         
-        for i, (provider, client) in enumerate(providers):
+        for i, (provider, client, service_type) in enumerate(providers):
+            # Check quota if cost optimization enabled
+            if self.cost_optimizer:
+                within_quota, reason = self.cost_optimizer.check_quota(service_type)
+                if not within_quota:
+                    logger.warning(f"{provider.value} quota exceeded: {reason}")
+                    if i < len(providers) - 1:
+                        fallback_used = True
+                        self.fallback_count += 1
+                        logger.info(f"Falling back to next provider...")
+                        continue
+                    else:
+                        last_error = LLMError(
+                            f"Quota exceeded: {reason}",
+                            error_type="quota_exceeded"
+                        )
+                        break
+            
             try:
                 logger.debug(f"Attempting generation with {provider.value}")
                 
@@ -200,6 +239,21 @@ class UnifiedLLMClient:
                     max_tokens=max_tokens,
                     **kwargs
                 )
+                
+                # Increment quota if cost optimization enabled
+                if self.cost_optimizer:
+                    self.cost_optimizer.increment_quota(service_type)
+                    
+                    # Cache response
+                    self.cost_optimizer.cache_response(
+                        service=service_type,
+                        operation="generate",
+                        response=response,
+                        prompt=prompt,
+                        temperature=temperature,
+                        max_tokens=max_tokens,
+                        **kwargs
+                    )
                 
                 # Add routing metadata
                 response.metadata["provider"] = provider.value
@@ -261,7 +315,7 @@ class UnifiedLLMClient:
             error_type="all_providers_failed",
             details={
                 "last_error": str(last_error),
-                "providers_tried": [p.value for p, _ in providers]
+                "providers_tried": [p.value for p, _, _ in providers]
             }
         )
     
@@ -362,3 +416,14 @@ class UnifiedLLMClient:
         summary["total_cost"] = total_cost
         
         return summary
+
+
+
+def create_unified_llm_client() -> UnifiedLLMClient:
+    """
+    Factory function to create unified LLM client.
+    
+    Returns:
+        Configured UnifiedLLMClient instance
+    """
+    return UnifiedLLMClient()

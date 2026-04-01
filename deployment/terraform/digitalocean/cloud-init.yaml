@@ -1,0 +1,76 @@
+#cloud-config
+# Cloud-init configuration for TradeSense backend droplet
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - docker.io
+  - docker-compose
+  - git
+  - curl
+  - vim
+
+write_files:
+  - path: /opt/tradesense/.env
+    content: |
+      ENVIRONMENT=production
+      DATABASE_URL=${database_url}
+      REDIS_URL=${redis_url}
+      AZURE_OPENAI_KEY=${azure_openai_key}
+      AZURE_OPENAI_ENDPOINT=${azure_openai_endpoint}
+      AZURE_SPEECH_KEY=${azure_speech_key}
+      AZURE_SPEECH_REGION=${azure_speech_region}
+      USE_AZURE_OPENAI=true
+      USE_AZURE_SPEECH=true
+    permissions: '0600'
+    owner: root:root
+
+  - path: /opt/tradesense/docker-compose.yml
+    content: |
+      version: '3.8'
+      services:
+        backend:
+          image: tradesense/backend:latest
+          container_name: tradesense-backend
+          restart: unless-stopped
+          ports:
+            - "80:8000"
+          env_file:
+            - .env
+          healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 40s
+    permissions: '0644'
+    owner: root:root
+
+runcmd:
+  # Start Docker service
+  - systemctl enable docker
+  - systemctl start docker
+  
+  # Pull latest image
+  - cd /opt/tradesense
+  - docker-compose pull
+  
+  # Start application
+  - docker-compose up -d
+  
+  # Set up log rotation
+  - |
+    cat > /etc/logrotate.d/tradesense <<EOF
+    /var/log/tradesense/*.log {
+      daily
+      rotate 7
+      compress
+      delaycompress
+      notifempty
+      create 0640 root root
+      sharedscripts
+    }
+    EOF
+
+final_message: "TradeSense backend deployment complete!"

@@ -154,7 +154,9 @@ def test_vad_speech_boundary_detection():
 
 def test_vad_reset():
     """Test VAD state reset."""
-    vad = create_azure_vad()
+    # Disable boundary detection for simpler testing
+    config = VADConfig(boundary_detection=False)
+    vad = AzureSpeechVAD(config=config)
     
     # Trigger speech
     vad.process_audio_level(0.9, 0.0)
@@ -170,7 +172,9 @@ def test_vad_reset():
 
 def test_vad_speech_duration():
     """Test speech duration calculation."""
-    vad = create_azure_vad()
+    # Disable boundary detection for simpler testing
+    config = VADConfig(boundary_detection=False)
+    vad = AzureSpeechVAD(config=config)
     
     # No active speech
     duration = vad.get_speech_duration(1.0)
@@ -178,18 +182,32 @@ def test_vad_speech_duration():
     
     # Start speech
     vad.process_audio_level(0.9, 0.0)
-    vad.process_audio_level(0.9, 0.15)
+    print(f"After first call: state={vad.current_state}, speech_start_time={vad.speech_start_time}")
     assert vad.current_state == VADState.SPEECH
     
-    # Check duration
-    duration = vad.get_speech_duration(0.5)
+    # Check duration immediately after speech starts
+    duration = vad.get_speech_duration(0.0)
+    print(f"Duration at 0.0: {duration}")
     assert duration is not None
-    assert duration >= 0.0
+    assert duration == 0.0
+    
+    # Continue speech
+    vad.process_audio_level(0.9, 0.15)
+    print(f"After second call: state={vad.current_state}, speech_start_time={vad.speech_start_time}")
+    assert vad.current_state == VADState.SPEECH
+    
+    # Check duration at a later time
+    duration = vad.get_speech_duration(0.5)
+    print(f"Duration at 0.5: {duration}")
+    assert duration is not None
+    assert duration == 0.5  # 0.5 - 0.0 (speech_start_time)
 
 
 def test_vad_is_speech_active():
     """Test speech activity check."""
-    vad = create_azure_vad()
+    # Disable boundary detection for simpler testing
+    config = VADConfig(boundary_detection=False)
+    vad = AzureSpeechVAD(config=config)
     
     assert not vad.is_speech_active()
     

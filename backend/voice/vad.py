@@ -165,7 +165,7 @@ class AzureSpeechVAD:
                             )
             
             elif self.current_state == VADState.SPEECH:
-                # Continue speech
+                # Continue speech - reset silence timer
                 self.silence_start_time = None
         
         else:  # Silence detected
@@ -186,11 +186,13 @@ class AzureSpeechVAD:
                                 f"(silence: {silence_duration_ms:.0f}ms)"
                             )
                         self.speech_start_time = None
+                        self.silence_start_time = None
             
             elif self.current_state == VADState.UNCERTAIN:
                 # False alarm, return to silence
                 self.current_state = VADState.SILENCE
                 self.speech_start_time = None
+                self.silence_start_time = None
         
         return self.current_state
     
@@ -219,7 +221,7 @@ class AzureSpeechVAD:
         Returns:
             Speech duration in seconds, or None if no active speech
         """
-        if self.current_state == VADState.SPEECH and self.speech_start_time:
+        if self.current_state == VADState.SPEECH and self.speech_start_time is not None:
             return current_time - self.speech_start_time
         return None
 

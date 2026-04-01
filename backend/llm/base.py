@@ -33,11 +33,26 @@ class LLMResponse:
     latency_ms: float = 0.0  # Deprecated, use latency
     finish_reason: str = ""
     metadata: Dict[str, Any] = None
+    usage: Optional[Dict[str, int]] = None  # Alternative way to pass token counts
     
     def __post_init__(self):
         """Initialize default values."""
         if self.metadata is None:
             self.metadata = {}
+        
+        # Handle usage dict if provided
+        if self.usage is not None:
+            if self.prompt_tokens == 0 and "prompt_tokens" in self.usage:
+                self.prompt_tokens = self.usage["prompt_tokens"]
+            if self.completion_tokens == 0 and "completion_tokens" in self.usage:
+                self.completion_tokens = self.usage["completion_tokens"]
+            if self.total_tokens == 0 and "total_tokens" in self.usage:
+                self.total_tokens = self.usage["total_tokens"]
+        
+        # Calculate total_tokens if not provided
+        if self.total_tokens == 0 and (self.prompt_tokens > 0 or self.completion_tokens > 0):
+            self.total_tokens = self.prompt_tokens + self.completion_tokens
+        
         # Backward compatibility
         if self.tokens_used == 0 and self.total_tokens > 0:
             self.tokens_used = self.total_tokens

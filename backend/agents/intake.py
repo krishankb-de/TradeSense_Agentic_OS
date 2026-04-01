@@ -479,32 +479,48 @@ class IntakeAgent:
         response_text = response.text.lower()
         urgency = 'routine'  # Default
         confidence = 0.7  # Default confidence
+        llm_urgency = None
         
+        # First, get LLM's classification
         if 'emergency' in response_text:
+            llm_urgency = 'emergency'
             urgency = 'emergency'
             confidence = 0.9
         elif 'urgent' in response_text:
+            llm_urgency = 'urgent'
             urgency = 'urgent'
             confidence = 0.85
         elif 'routine' in response_text:
+            llm_urgency = 'routine'
             urgency = 'routine'
             confidence = 0.8
         
-        # Check for high-confidence keywords
-        emergency_keywords = ['gas leak', 'no heat', 'no water', 'flooding', 'fire', 'electrical shock']
-        urgent_keywords = ['not working', 'broken', 'stopped', 'failed', 'leaking']
-        
-        for keyword in emergency_keywords:
-            if keyword in description.lower():
-                urgency = 'emergency'
-                confidence = 0.95
-                break
-        
-        if urgency != 'emergency':
-            for keyword in urgent_keywords:
+        # Only use keyword matching if LLM didn't provide clear classification
+        # or to upgrade urgency (never downgrade)
+        if llm_urgency is None:
+            # Check for high-confidence keywords only if LLM didn't classify
+            emergency_keywords = ['gas leak', 'no heat', 'no water', 'flooding', 'fire', 'electrical shock']
+            urgent_keywords = ['not working', 'broken', 'stopped', 'failed']
+            
+            for keyword in emergency_keywords:
                 if keyword in description.lower():
-                    urgency = 'urgent'
-                    confidence = max(confidence, 0.85)
+                    urgency = 'emergency'
+                    confidence = 0.95
+                    break
+            
+            if urgency != 'emergency':
+                for keyword in urgent_keywords:
+                    if keyword in description.lower():
+                        urgency = 'urgent'
+                        confidence = max(confidence, 0.85)
+                        break
+        elif llm_urgency == 'routine':
+            # Allow keywords to upgrade routine to urgent/emergency
+            emergency_keywords = ['gas leak', 'no heat', 'no water', 'flooding', 'fire', 'electrical shock']
+            for keyword in emergency_keywords:
+                if keyword in description.lower():
+                    urgency = 'emergency'
+                    confidence = 0.95
                     break
         
         logger.debug(f"Urgency classified as '{urgency}' with confidence {confidence}")

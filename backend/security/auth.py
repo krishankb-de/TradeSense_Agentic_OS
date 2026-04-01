@@ -180,3 +180,30 @@ def exchange_code_for_token(code: str, redirect_uri: str) -> dict:
     # This is a placeholder for OAuth 2.0 token exchange
     # In production, make HTTP request to provider's token endpoint
     raise NotImplementedError("OAuth 2.0 token exchange not yet implemented")
+
+
+async def get_current_user_ws(token: str) -> Optional[User]:
+    """
+    Get current authenticated user from JWT token for WebSocket connections.
+    
+    Args:
+        token: JWT token from query parameter
+        
+    Returns:
+        User object if authenticated, None otherwise
+    """
+    try:
+        token_data = verify_access_token(token)
+        
+        user = User(
+            id=token_data.user_id,
+            email=token_data.email,
+            role=token_data.role
+        )
+        
+        return user
+        
+    except HTTPException:
+        return None
+    except Exception:
+        return None

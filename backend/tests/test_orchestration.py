@@ -283,7 +283,7 @@ async def test_pipeline_execution_timeout(pipeline_executor):
         name="step1",
         agent="intake",
         function=slow_func,
-        timeout=0.5,
+        timeout=1,  # Changed from 0.5 to 1 to meet validation requirement
         retry_policy=RetryPolicy(max_retries=0),
     )
     pipeline.add_step(step)

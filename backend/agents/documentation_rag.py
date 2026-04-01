@@ -76,11 +76,14 @@ class DocumentationRAG:
         self.llm_client = llm_client
         self.storage_backend = storage_backend
         
-        # In-memory index for simple implementation
+        # In-memory index for simple implementation (fallback)
         self.document_index: Dict[str, DocumentChunk] = {}
         self.embeddings_cache: Dict[str, List[float]] = {}
         
-        logger.info("Initialized DocumentationRAG")
+        # Use storage backend if available
+        self.use_storage = storage_backend is not None
+        
+        logger.info(f"Initialized DocumentationRAG (storage: {self.use_storage})")
     
     async def index_document(
         self,
@@ -133,8 +136,24 @@ class DocumentationRAG:
                     embedding=embedding,
                 )
                 
-                # Store in index
+                # Store in index (in-memory)
                 self.document_index[chunk_id] = chunk
+                
+                # Store in persistent storage if available
+                if self.use_storage and self.storage_backend:
+                    self.storage_backend.store_chunk(
+                        chunk_id=chunk_id,
+                        content=chunk_text,
+                        source=file_path,
+                        embedding=embedding,
+                        page=self._estimate_page(i, chunk_size),
+                        section=None,
+                        metadata={
+                            "document_type": document_type,
+                            "chunk_index": i,
+                        },
+                    )
+                
                 indexed_count += 1
             
             logger.info(f"Indexed {indexed_count} chunks from {file_path}")
@@ -171,30 +190,61 @@ class DocumentationRAG:
             # Generate query embedding
             query_embedding = await self._generate_embedding(query)
             
-            # Calculate similarity scores
-            results = []
-            for chunk_id, chunk in self.document_index.items():
-                # Apply filters if provided
-                if filters and not self._matches_filters(chunk, filters):
-                    continue
+            # Use storage backend if available
+            if self.use_storage and self.storage_backend:
+                # Search using persistent storage
+                chunk_ids_scores = self.storage_backend.search_by_vector(
+                    query_embedding=query_embedding,
+                    max_results=max_results,
+                    min_similarity=min_relevance,
+                    source_filter=filters.get("source") if filters else None,
+                )
                 
-                # Calculate cosine similarity
-                if chunk.embedding:
-                    similarity = self._cosine_similarity(
-                        query_embedding, chunk.embedding
-                    )
-                    
-                    if similarity >= min_relevance:
+                # Retrieve full chunks
+                results = []
+                for chunk_id, similarity in chunk_ids_scores:
+                    chunk_data = self.storage_backend.get_chunk(chunk_id)
+                    if chunk_data:
+                        chunk = DocumentChunk(
+                            id=chunk_data["id"],
+                            content=chunk_data["content"],
+                            source=chunk_data["source"],
+                            page=chunk_data["page"],
+                            section=chunk_data["section"],
+                            metadata=chunk_data["metadata"],
+                            embedding=chunk_data["embedding"],
+                        )
                         results.append(
                             SearchResult(
                                 chunk=chunk,
                                 relevance_score=similarity,
                             )
                         )
-            
-            # Sort by relevance and limit results
-            results.sort(key=lambda r: r.relevance_score, reverse=True)
-            results = results[:max_results]
+            else:
+                # Use in-memory index
+                results = []
+                for chunk_id, chunk in self.document_index.items():
+                    # Apply filters if provided
+                    if filters and not self._matches_filters(chunk, filters):
+                        continue
+                    
+                    # Calculate cosine similarity
+                    if chunk.embedding:
+                        similarity = self._cosine_similarity(
+                            query_embedding, chunk.embedding
+                        )
+                        
+                        if similarity >= min_relevance:
+                            results.append(
+                                SearchResult(
+                                    chunk=chunk,
+                                    relevance_score=similarity,
+                                )
+                            )
+                
+                # Sort by relevance and limit results
+                results.sort(key=lambda r: r.relevance_score, reverse=True)
+                results = results[:max_results]
             
             # Add context for top results
             for result in results:
@@ -267,13 +317,16 @@ class DocumentationRAG:
     
     def get_statistics(self) -> Dict[str, Any]:
         """Get indexing statistics."""
-        return {
-            "total_chunks": len(self.document_index),
-            "total_documents": len(set(
-                chunk.source for chunk in self.document_index.values()
-            )),
-            "cache_size": len(self.embeddings_cache),
-        }
+        if self.use_storage and self.storage_backend:
+            return self.storage_backend.get_statistics()
+        else:
+            return {
+                "total_chunks": len(self.document_index),
+                "total_documents": len(set(
+                    chunk.source for chunk in self.document_index.values()
+                )),
+                "cache_size": len(self.embeddings_cache),
+            }
     
     # ========================================================================
     # Helper Methods
@@ -291,11 +344,11 @@ class DocumentationRAG:
             raise FileNotFoundError(f"Document not found: {file_path}")
         
         if document_type == "markdown" or file_path.endswith(".md"):
-            return path.read_text(encoding="utf-8")
+            return path.read_text(encoding="utf-8", errors="replace")
         
         elif document_type == "html" or file_path.endswith(".html"):
             # Simple HTML text extraction
-            text = path.read_text(encoding="utf-8")
+            text = path.read_text(encoding="utf-8", errors="replace")
             # Remove HTML tags (basic implementation)
             import re
             text = re.sub(r'<[^>]+>', '', text)
@@ -309,7 +362,7 @@ class DocumentationRAG:
         
         else:
             # Try to read as plain text
-            return path.read_text(encoding="utf-8")
+            return path.read_text(encoding="utf-8", errors="replace")
     
     def _split_into_chunks(
         self,

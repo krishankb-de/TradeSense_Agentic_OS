@@ -1,0 +1,155 @@
+# TradeSense DigitalOcean App Platform Configuration
+# Uses DigitalOcean $200 student credit
+# Estimated cost: ~$36/month (covered by credit for 5+ months)
+
+name: tradesense
+region: nyc
+
+# ============================================================================
+# Services
+# ============================================================================
+services:
+  - name: backend
+    github:
+      repo: your-username/tradesense
+      branch: main
+      deploy_on_push: true
+    
+    # Build configuration
+    build_command: |
+      cd backend
+      pip install -r requirements.txt
+    
+    run_command: |
+      cd backend
+      uvicorn api.main:app --host 0.0.0.0 --port 8080
+    
+    # Environment
+    environment_slug: python
+    instance_count: 1
+    instance_size_slug: basic-xxs  # $6/month
+    
+    # Health check
+    health_check:
+      http_path: /health
+      initial_delay_seconds: 30
+      period_seconds: 10
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 3
+    
+    # Environment variables
+    envs:
+      - key: ENVIRONMENT
+        value: production
+        scope: RUN_TIME
+      
+      - key: DATABASE_URL
+        value: ${db.DATABASE_URL}
+        scope: RUN_TIME
+      
+      - key: REDIS_URL
+        value: ${redis.DATABASE_URL}
+        scope: RUN_TIME
+      
+      - key: AZURE_OPENAI_KEY
+        value: ${AZURE_OPENAI_KEY}
+        scope: RUN_TIME
+        type: SECRET
+      
+      - key: AZURE_OPENAI_ENDPOINT
+        value: ${AZURE_OPENAI_ENDPOINT}
+        scope: RUN_TIME
+      
+      - key: AZURE_SPEECH_KEY
+        value: ${AZURE_SPEECH_KEY}
+        scope: RUN_TIME
+        type: SECRET
+      
+      - key: AZURE_SPEECH_REGION
+        value: ${AZURE_SPEECH_REGION}
+        scope: RUN_TIME
+      
+      - key: USE_AZURE_OPENAI
+        value: "true"
+        scope: RUN_TIME
+      
+      - key: USE_AZURE_SPEECH
+        value: "true"
+        scope: RUN_TIME
+      
+      - key: DATADOG_API_KEY
+        value: ${DATADOG_API_KEY}
+        scope: RUN_TIME
+        type: SECRET
+      
+      - key: SENTRY_DSN
+        value: ${SENTRY_DSN}
+        scope: RUN_TIME
+        type: SECRET
+    
+    # HTTP configuration
+    http_port: 8080
+    
+    # Routes
+    routes:
+      - path: /
+
+# ============================================================================
+# Databases
+# ============================================================================
+databases:
+  - name: db
+    engine: PG
+    version: "15"
+    production: true
+    cluster_name: tradesense-postgres
+    db_name: tradesense
+    db_user: tradesense
+    size: db-s-1vcpu-1gb  # $15/month
+
+  - name: redis
+    engine: REDIS
+    version: "7"
+    production: true
+    cluster_name: tradesense-redis
+    size: db-s-1vcpu-1gb  # $15/month
+
+# ============================================================================
+# Static Sites (Optional - for frontend)
+# ============================================================================
+# static_sites:
+#   - name: frontend
+#     github:
+#       repo: your-username/tradesense
+#       branch: main
+#       deploy_on_push: true
+#     build_command: |
+#       cd frontend
+#       npm install
+#       npm run build
+#     output_dir: frontend/dist
+#     routes:
+#       - path: /
+
+# ============================================================================
+# Alerts
+# ============================================================================
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED
+  - rule: CPU_UTILIZATION
+    value: 80
+  - rule: MEM_UTILIZATION
+    value: 80
+
+# ============================================================================
+# Cost Breakdown (Monthly)
+# ============================================================================
+# Backend service (basic-xxs): $6/month
+# PostgreSQL (db-s-1vcpu-1gb): $15/month
+# Redis (db-s-1vcpu-1gb): $15/month
+# Total: $36/month
+#
+# With $200 credit: 5.5 months free
+# After credit: Still cheaper than $950-$3,900/month SaaS alternatives
