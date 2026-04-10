@@ -5,11 +5,14 @@ from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import timedelta
+import json
+from pathlib import Path
 
 from security.auth import (
     create_access_token,
     get_current_user,
     User,
+    verify_password,
     ACCESS_TOKEN_EXPIRE_MINUTES
 )
 from security.rbac import Role
@@ -20,6 +23,16 @@ from security.identity_verification import (
 )
 
 router = APIRouter()
+
+# Load test users from file
+TEST_USERS_FILE = Path(__file__).parent.parent.parent / "test_users.json"
+
+def load_test_users():
+    """Load test users from JSON file."""
+    if TEST_USERS_FILE.exists():
+        with open(TEST_USERS_FILE, 'r') as f:
+            return json.load(f)
+    return {}
 
 
 class Token(BaseModel):
@@ -56,13 +69,28 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     OAuth 2.0 login endpoint.
     
     Returns JWT access token with 1-hour expiration.
-    """
-    # TODO: Implement actual user authentication against database
-    # This is a placeholder implementation
     
-    # Verify credentials (placeholder)
-    # In production, hash password and check against database
-    if not form_data.username or not form_data.password:
+    Test credentials:
+    - Email: test@test.com, Password: test
+    - Email: admin@tradesense.com, Password: admin123
+    - Email: tech@tradesense.com, Password: tech123
+    """
+    # Load test users
+    test_users = load_test_users()
+    
+    # Check if user exists
+    user_email = form_data.username
+    if user_email not in test_users:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    user = test_users[user_email]
+    
+    # Verify password
+    if not verify_password(form_data.password, user["password_hash"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -73,9 +101,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={
-            "user_id": "user-123",  # Replace with actual user ID
-            "email": form_data.username,
-            "role": "technician"  # Replace with actual user role
+            "user_id": user["user_id"],
+            "email": user["email"],
+            "role": user["role"]
         },
         expires_delta=access_token_expires
     )

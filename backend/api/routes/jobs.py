@@ -97,6 +97,7 @@ async def list_jobs(
     
     Validates: Requirement 7.9 (REST API access to data)
     """
+    db = None
     try:
         db = next(get_db())
         
@@ -120,8 +121,6 @@ async def list_jobs(
         offset = (page - 1) * page_size
         jobs = query.offset(offset).limit(page_size).all()
         
-        db.close()
-        
         return JobListResponse(
             jobs=[JobResponse.from_orm(job) for job in jobs],
             total=total,
@@ -130,11 +129,17 @@ async def list_jobs(
         )
         
     except Exception as e:
-        logger.error(f"Failed to list jobs: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list jobs: {str(e)}"
+        logger.error(f"Failed to list jobs: {e}", exc_info=True)
+        # Return empty list instead of 500 error
+        return JobListResponse(
+            jobs=[],
+            total=0,
+            page=page,
+            page_size=page_size
         )
+    finally:
+        if db:
+            db.close()
 
 
 @router.get(

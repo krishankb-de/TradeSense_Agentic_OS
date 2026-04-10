@@ -86,8 +86,8 @@ export const futureDateArb = fc
  */
 export const emailArb = fc
   .tuple(
-    fc.stringOf(fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz0123456789'), { minLength: 3, maxLength: 20 }),
-    fc.stringOf(fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz'), { minLength: 3, maxLength: 15 }),
+    fc.string({ minLength: 3, maxLength: 20 }).map(s => s.toLowerCase().replace(/[^a-z0-9]/g, '')),
+    fc.string({ minLength: 3, maxLength: 15 }).map(s => s.toLowerCase().replace(/[^a-z]/g, '')),
     fc.constantFrom('com', 'org', 'net', 'io', 'dev')
   )
   .map(([username, domain, tld]) => `${username}@${domain}.${tld}`);
@@ -111,12 +111,12 @@ export const phoneArb = fc
  * Generate valid GeoLocation instances.
  */
 export const geoLocationArb: fc.Arbitrary<GeoLocation> = fc.record({
-  latitude: fc.float({ min: -90, max: 90 }),
-  longitude: fc.float({ min: -180, max: 180 }),
+  latitude: fc.double({ min: -90, max: 90, noNaN: true }),
+  longitude: fc.double({ min: -180, max: 180, noNaN: true }),
   address: fc.string({ minLength: 10, maxLength: 100 }),
   city: fc.string({ minLength: 3, maxLength: 50 }),
   state: fc.constantFrom('CA', 'NY', 'TX', 'FL', 'IL', 'PA', 'OH'),
-  zipCode: fc.stringOf(fc.constantFrom(...'0123456789'), { minLength: 5, maxLength: 5 }),
+  zipCode: fc.string({ minLength: 5, maxLength: 5 }).map(s => s.replace(/\D/g, '0').slice(0, 5)),
 });
 
 /**
@@ -126,9 +126,9 @@ export const partArb: fc.Arbitrary<Part> = fc.record({
   id: uuidArb,
   name: fc.string({ minLength: 5, maxLength: 50 }),
   manufacturer: fc.constantFrom('Honeywell', 'Carrier', 'Trane', 'Lennox', 'Rheem'),
-  modelNumber: fc.stringOf(fc.constantFrom(...'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), { minLength: 5, maxLength: 20 }),
+  modelNumber: fc.string({ minLength: 5, maxLength: 20 }).map(s => s.toUpperCase().replace(/[^A-Z0-9]/g, '')),
   quantity: fc.integer({ min: 1, max: 100 }),
-  unitCost: fc.float({ min: 1.0, max: 1000.0 }),
+  unitCost: fc.double({ min: 1.0, max: 1000.0, noNaN: true }),
   source: fc.constantFrom(PartSource.INVENTORY, PartSource.ORDERED, PartSource.CUSTOMER_SUPPLIED),
 });
 
@@ -163,7 +163,7 @@ export const leadArb: fc.Arbitrary<Lead> = fc
       createdAt: fc.constant(created),
       updatedAt: fc.constant(updated),
       assignedTechnicianId: fc.option(uuidArb, { nil: undefined }),
-      estimatedValue: fc.float({ min: 50.0, max: 5000.0 }),
+      estimatedValue: fc.double({ min: 50.0, max: 5000.0, noNaN: true }),
     });
   });
 
@@ -176,7 +176,7 @@ export const triageResultArb: fc.Arbitrary<TriageResult> = fc.record({
   requiredSkills: fc.array(fc.constantFrom('HVAC', 'Electrical', 'Plumbing', 'Diagnostics'), { minLength: 1, maxLength: 3 }),
   suggestedTechnicians: fc.array(uuidArb, { minLength: 1, maxLength: 5 }),
   priority: fc.integer({ min: 1, max: 10 }),
-  confidence: fc.float({ min: 0.0, max: 1.0 }),
+  confidence: fc.double({ min: 0.0, max: 1.0, noNaN: true }),
 });
 
 // ============================================================================
@@ -189,7 +189,7 @@ export const triageResultArb: fc.Arbitrary<TriageResult> = fc.record({
 export const diagnosisArb: fc.Arbitrary<Diagnosis> = fc.record({
   issueType: fc.constantFrom('Compressor Failure', 'Refrigerant Leak', 'Thermostat Malfunction', 'Electrical Issue'),
   rootCause: fc.string({ minLength: 20, maxLength: 200 }),
-  confidence: fc.float({ min: 0.0, max: 1.0 }),
+  confidence: fc.double({ min: 0.0, max: 1.0, noNaN: true }),
   requiredParts: fc.array(partArb, { minLength: 0, maxLength: 5 }),
   estimatedRepairTime: fc.integer({ min: 30, max: 480 }),
   complexity: fc.constantFrom(Complexity.SIMPLE, Complexity.MODERATE, Complexity.COMPLEX),
@@ -200,7 +200,7 @@ export const diagnosisArb: fc.Arbitrary<Diagnosis> = fc.record({
  * Generate valid CarbonFootprint instances.
  */
 export const carbonFootprintArb: fc.Arbitrary<CarbonFootprint> = fc
-  .tuple(fc.float({ min: 0.0, max: 50.0 }), fc.float({ min: 0.0, max: 30.0 }))
+  .tuple(fc.double({ min: 0.0, max: 50.0, noNaN: true }), fc.double({ min: 0.0, max: 30.0, noNaN: true }))
   .chain(([travelEmissions, partsEmissions]) =>
     fc.record({
       totalEmissions: fc.constant(travelEmissions + partsEmissions),
@@ -244,8 +244,8 @@ export const jobArb: fc.Arbitrary<Job> = fc
       actualEnd: fc.constant(actualEnd),
       diagnosis: fc.option(diagnosisArb, { nil: undefined }),
       partsUsed: fc.array(partArb, { minLength: 0, maxLength: 5 }),
-      laborHours: fc.float({ min: 0.5, max: 8.0 }),
-      totalCost: fc.float({ min: 50.0, max: 5000.0 }),
+      laborHours: fc.double({ min: 0.5, max: 8.0, noNaN: true }),
+      totalCost: fc.double({ min: 50.0, max: 5000.0, noNaN: true }),
       customerSignature: fc.option(fc.string({ minLength: 10, maxLength: 100 }), { nil: undefined }),
       photos: fc.array(fc.string({ minLength: 10, maxLength: 100 }), { minLength: 0, maxLength: 10 }),
       notes: fc.string({ minLength: 0, maxLength: 500 }),
@@ -262,7 +262,7 @@ export const jobArb: fc.Arbitrary<Job> = fc
  */
 export const intentArb: fc.Arbitrary<Intent> = fc.record({
   name: fc.constantFrom('JOB_COMPLETION', 'LEAD_INTAKE', 'DIAGNOSIS', 'PARTS_QUERY', 'SCHEDULING'),
-  confidence: fc.float({ min: 0.0, max: 1.0 }),
+  confidence: fc.double({ min: 0.0, max: 1.0, noNaN: true }),
   parameters: fc.dictionary(fc.string({ minLength: 1, maxLength: 20 }), fc.string({ minLength: 1, maxLength: 50 })),
 });
 
@@ -275,7 +275,7 @@ export const entityArb: fc.Arbitrary<Entity> = fc
     fc.record({
       type: fc.constantFrom('PART_NUMBER', 'TECHNICIAN_NAME', 'CUSTOMER_NAME', 'DATE', 'TIME'),
       value: fc.string({ minLength: 1, maxLength: 50 }),
-      confidence: fc.float({ min: 0.0, max: 1.0 }),
+      confidence: fc.double({ min: 0.0, max: 1.0, noNaN: true }),
       span: fc.constant<[number, number]>([start, start + length]),
     })
   );
@@ -298,23 +298,44 @@ export const conversationTurnArb: fc.Arbitrary<ConversationTurn> = fc.record({
  * Generate valid ConversationContext instances.
  */
 export const conversationContextArb: fc.Arbitrary<ConversationContext> = fc
-  .tuple(recentDateArb, fc.integer({ min: 0, max: 50 }))
-  .chain(([startTime, turnCount]) =>
-    fc.record({
+  .tuple(recentDateArb, fc.integer({ min: 0, max: 10 }))
+  .chain(([startTime, historyLength]) => {
+    // Generate chronologically ordered history
+    const historyArb = fc.array(
+      fc.record({
+        speaker: fc.constantFrom('user', 'agent'),
+        content: fc.string({ minLength: 10, maxLength: 500 }),
+        agent: fc.option(fc.constantFrom('intake', 'diagnostic', 'fulfillment'), { nil: undefined }),
+        actions: fc.array(fc.dictionary(fc.string({ minLength: 1, maxLength: 20 }), fc.string({ minLength: 1, maxLength: 50 })), {
+          minLength: 0,
+          maxLength: 3,
+        }),
+      }),
+      { minLength: 0, maxLength: historyLength }
+    ).map((turns) => {
+      // Add chronologically ordered timestamps
+      return turns.map((turn, index) => {
+        const timestamp = new Date(startTime);
+        timestamp.setMinutes(timestamp.getMinutes() + index);
+        return { ...turn, timestamp };
+      });
+    });
+
+    return fc.record({
       sessionId: uuidArb,
       userId: uuidArb,
       userRole: fc.constantFrom(UserRole.TECHNICIAN, UserRole.CUSTOMER, UserRole.DISPATCHER, UserRole.ADMIN),
       currentIntent: fc.option(intentArb, { nil: undefined }),
       entities: fc.array(entityArb, { minLength: 0, maxLength: 5 }),
-      history: fc.array(conversationTurnArb, { minLength: 0, maxLength: 10 }),
+      history: historyArb,
       state: fc.dictionary(fc.string({ minLength: 1, maxLength: 20 }), fc.string({ minLength: 1, maxLength: 50 })),
       metadata: fc.constant({
         startTime: startTime.getTime(),
-        turnCount,
+        turnCount: historyLength,
         activeAgents: ['intake', 'diagnostic', 'fulfillment'].slice(0, Math.floor(Math.random() * 4)),
       }),
-    })
-  );
+    });
+  });
 
 // ============================================================================
 // MCP Model Arbitraries
@@ -366,7 +387,7 @@ export const partsRecommendationArb: fc.Arbitrary<PartsRecommendation> = fc
       distributorOptions: fc.array(
         fc.record({
           distributor: fc.constantFrom('digikey', 'mouser', 'arrow', 'newark', 'tme'),
-          price: fc.float({ min: 1.0, max: 1000.0 }),
+          price: fc.double({ min: 1.0, max: 1000.0, noNaN: true }),
           leadTime: fc.integer({ min: 0, max: 30 }),
           quantity: fc.integer({ min: 1, max: 100 }),
         }),
@@ -380,8 +401,8 @@ export const partsRecommendationArb: fc.Arbitrary<PartsRecommendation> = fc
  */
 export const equipmentInfoArb: fc.Arbitrary<EquipmentInfo> = fc.record({
   manufacturer: fc.constantFrom('Honeywell', 'Carrier', 'Trane', 'Lennox', 'Rheem'),
-  model: fc.stringOf(fc.constantFrom(...'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), { minLength: 5, maxLength: 20 }),
-  serialNumber: fc.option(fc.stringOf(fc.constantFrom(...'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'), { minLength: 8, maxLength: 20 }), {
+  model: fc.string({ minLength: 5, maxLength: 20 }).map(s => s.toUpperCase().replace(/[^A-Z0-9]/g, '')),
+  serialNumber: fc.option(fc.string({ minLength: 8, maxLength: 20 }).map(s => s.toUpperCase().replace(/[^A-Z0-9]/g, '')), {
     nil: undefined,
   }),
   type: fc.constantFrom('Air Conditioner', 'Furnace', 'Heat Pump', 'Thermostat'),
@@ -419,7 +440,7 @@ export const routeArb: fc.Arbitrary<Route> = fc
     fc.record({
       technicianId: uuidArb,
       assignments: fc.constant(assignments),
-      totalDistance: fc.float({ min: 0.0, max: 500.0 }),
+      totalDistance: fc.double({ min: 0.0, max: 500.0, noNaN: true }),
       totalDuration: fc.integer({ min: 60, max: 600 }),
     })
   );
@@ -434,6 +455,95 @@ export const scheduleArb: fc.Arbitrary<Schedule> = fc
       assignments: fc.constant(assignments),
       routes: fc.constant(routes),
       estimatedCompletionTime: fc.integer({ min: 60, max: 600 }),
-      utilizationRate: fc.float({ min: 0.0, max: 1.0 }),
+      utilizationRate: fc.double({ min: 0.0, max: 1.0, noNaN: true }),
     })
   );
+
+// ============================================================================
+// Mock Data Provider Arbitraries (Frontend)
+// ============================================================================
+
+/**
+ * Generate valid Lead instances for frontend mock data.
+ * Note: This is different from the backend Lead type.
+ */
+export const mockLeadArb: fc.Arbitrary<{
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  status: 'new' | 'contacted' | 'qualified' | 'converted';
+  source: string;
+  created_at: string;
+}> = fc.record({
+  id: uuidArb,
+  name: fc.string({ minLength: 3, maxLength: 50 }),
+  email: emailArb,
+  phone: phoneArb,
+  status: fc.constantFrom('new', 'contacted', 'qualified', 'converted'),
+  source: fc.constantFrom('Website', 'Referral', 'Phone', 'Email', 'Social Media'),
+  created_at: recentDateArb.map(d => d.toISOString()),
+});
+
+/**
+ * Generate valid Job instances for frontend mock data.
+ * Note: This is different from the backend Job type.
+ */
+export const mockJobArb: fc.Arbitrary<{
+  id: string;
+  title: string;
+  description: string;
+  status: 'pending' | 'active' | 'completed' | 'cancelled';
+  technician_id: string | null;
+  lead_id: string;
+  scheduled_date: string;
+  completion_date: string | null;
+}> = fc
+  .tuple(
+    fc.constantFrom('pending', 'active', 'completed', 'cancelled'),
+    futureDateArb,
+    fc.option(recentDateArb, { nil: null })
+  )
+  .chain(([status, scheduledDate, completionDate]) =>
+    fc.record({
+      id: uuidArb,
+      title: fc.constantFrom(
+        'HVAC Repair',
+        'Electrical Installation',
+        'Plumbing Fix',
+        'Appliance Repair',
+        'System Maintenance',
+        'Emergency Service'
+      ),
+      description: fc.string({ minLength: 10, maxLength: 200 }),
+      status: fc.constant(status),
+      technician_id: status === 'pending' ? fc.constant(null) : fc.option(uuidArb, { nil: null }),
+      lead_id: uuidArb,
+      scheduled_date: fc.constant(scheduledDate.toISOString()),
+      completion_date: status === 'completed' && completionDate ? fc.constant(completionDate.toISOString()) : fc.constant(null),
+    })
+  );
+
+/**
+ * Generate valid Technician instances for frontend mock data.
+ */
+export const mockTechnicianArb: fc.Arbitrary<{
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  skills: string[];
+  available: boolean;
+  rating: number;
+}> = fc.record({
+  id: uuidArb,
+  name: fc.string({ minLength: 3, maxLength: 50 }),
+  email: emailArb,
+  phone: phoneArb,
+  skills: fc.array(
+    fc.constantFrom('HVAC', 'Electrical', 'Plumbing', 'General Repair', 'Appliance Repair', 'Maintenance'),
+    { minLength: 1, maxLength: 4 }
+  ),
+  available: fc.boolean(),
+  rating: fc.double({ min: 3.5, max: 5.0, noNaN: true }).map(r => parseFloat(r.toFixed(1))),
+});

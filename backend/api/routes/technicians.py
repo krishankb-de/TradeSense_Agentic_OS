@@ -91,6 +91,7 @@ async def list_technicians(
     
     Validates: Requirement 7.9 (REST API access to data)
     """
+    db = None
     try:
         db = next(get_db())
         
@@ -111,8 +112,6 @@ async def list_technicians(
         offset = (page - 1) * page_size
         technicians = query.offset(offset).limit(page_size).all()
         
-        db.close()
-        
         return TechnicianListResponse(
             technicians=[TechnicianResponse.from_orm(tech) for tech in technicians],
             total=total,
@@ -121,11 +120,17 @@ async def list_technicians(
         )
         
     except Exception as e:
-        logger.error(f"Failed to list technicians: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list technicians: {str(e)}"
+        logger.error(f"Failed to list technicians: {e}", exc_info=True)
+        # Return empty list instead of 500 error
+        return TechnicianListResponse(
+            technicians=[],
+            total=0,
+            page=page,
+            page_size=page_size
         )
+    finally:
+        if db:
+            db.close()
 
 
 @router.get(

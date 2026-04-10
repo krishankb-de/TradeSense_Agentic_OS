@@ -943,7 +943,7 @@ This implementation plan transforms the TradeSense design into actionable coding
   - Ensure all tests pass, ask the user if questions arise.
 
 
-- [~] 18. Implement comprehensive testing suite
+- [ ] 18. Implement comprehensive testing suite
   - [x] 18.1 Create property-based test framework setup
     - Set up fast-check for TypeScript
     - Set up hypothesis for Python

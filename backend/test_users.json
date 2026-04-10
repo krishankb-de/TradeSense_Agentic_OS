@@ -1,0 +1,26 @@
+{
+  "test@test.com": {
+    "email": "test@test.com",
+    "password_hash": "$2b$12$FXq1tAnoQAiAVDA7wnWoF..6u9Y3U2ZzgDOXCaelXFPpNKvauic3q",
+    "name": "Test User",
+    "role": "admin",
+    "user_id": "test-user-001",
+    "verified": true
+  },
+  "admin@tradesense.com": {
+    "email": "admin@tradesense.com",
+    "password_hash": "$2b$12$0AEB.v95K57U.I38Ce3PR.CWvOBaO.COqVbsjP03yjwnUzjXlDW9e",
+    "name": "Admin User",
+    "role": "admin",
+    "user_id": "admin-user-001",
+    "verified": true
+  },
+  "tech@tradesense.com": {
+    "email": "tech@tradesense.com",
+    "password_hash": "$2b$12$.yoYY9NA8QqxzATkTTBEA.Q0adeGTR61drppssq4TxjzaMW4iuyN6",
+    "name": "Technician User",
+    "role": "technician",
+    "user_id": "tech-user-001",
+    "verified": true
+  }
+}

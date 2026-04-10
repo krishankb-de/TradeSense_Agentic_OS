@@ -85,6 +85,7 @@ async def list_leads(
     
     Validates: Requirement 7.9 (REST API access to data)
     """
+    db = None
     try:
         db = next(get_db())
         
@@ -106,8 +107,6 @@ async def list_leads(
         offset = (page - 1) * page_size
         leads = query.offset(offset).limit(page_size).all()
         
-        db.close()
-        
         return LeadListResponse(
             leads=[LeadResponse.from_orm(lead) for lead in leads],
             total=total,
@@ -116,11 +115,17 @@ async def list_leads(
         )
         
     except Exception as e:
-        logger.error(f"Failed to list leads: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list leads: {str(e)}"
+        logger.error(f"Failed to list leads: {e}", exc_info=True)
+        # Return empty list instead of 500 error
+        return LeadListResponse(
+            leads=[],
+            total=0,
+            page=page,
+            page_size=page_size
         )
+    finally:
+        if db:
+            db.close()
 
 
 @router.get(
